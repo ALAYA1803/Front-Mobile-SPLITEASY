@@ -1,14 +1,13 @@
 package com.spliteasy.spliteasy.di
 
+import com.spliteasy.spliteasy.data.remote.AuthInterceptor
 import com.spliteasy.spliteasy.data.remote.api.AuthService
 import com.spliteasy.spliteasy.data.remote.api.UsersService
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -19,28 +18,28 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://back-spliteasy.onrender.com/api/v1/"
-
     @Provides @Singleton
-    fun provideMoshi(): Moshi =
-        Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-
-    @Provides @Singleton
-    fun provideLogging(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
-
-    @Provides @Singleton
-    fun provideClient(logging: HttpLoggingInterceptor): OkHttpClient =
-        OkHttpClient.Builder()
-            .addInterceptor(logging)
+    fun provideOkHttp(
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
+        val log = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BASIC
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(log)
+            .addInterceptor(authInterceptor)
             .build()
+    }
+
+    @Provides @Singleton
+    fun provideMoshi(): Moshi = Moshi.Builder().build()
 
     @Provides @Singleton
     fun provideRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
+            .baseUrl("https://back-spliteasy.onrender.com/api/v1/")
             .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(client)
             .build()
 
     @Provides @Singleton
