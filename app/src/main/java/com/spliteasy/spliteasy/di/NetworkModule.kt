@@ -1,11 +1,12 @@
 package com.spliteasy.spliteasy.di
 
-import com.spliteasy.spliteasy.data.remote.AuthInterceptor
+import com.spliteasy.spliteasy.BuildConfig
 import com.spliteasy.spliteasy.data.remote.api.AuthService
-import com.spliteasy.spliteasy.data.remote.api.ExpensesService
-import com.spliteasy.spliteasy.data.remote.api.GroupsService
 import com.spliteasy.spliteasy.data.remote.api.UsersService
+import com.spliteasy.spliteasy.data.remote.api.GroupsService
+import com.spliteasy.spliteasy.data.remote.api.ExpensesService
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +15,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -21,40 +23,47 @@ import javax.inject.Singleton
 object NetworkModule {
 
     @Provides @Singleton
-    fun provideOkHttp(
-        authInterceptor: AuthInterceptor
-    ): OkHttpClient {
-        val log = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+    fun provideMoshi(): Moshi =
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
+    @Provides @Singleton
+    fun provideOkHttp(): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG)
+                HttpLoggingInterceptor.Level.BODY
+            else
+                HttpLoggingInterceptor.Level.BASIC
         }
+
         return OkHttpClient.Builder()
-            .addInterceptor(log)
-            .addInterceptor(authInterceptor)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .callTimeout(60, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .addInterceptor(logging)
             .build()
     }
 
     @Provides @Singleton
-    fun provideMoshi(): Moshi = Moshi.Builder().build()
-
-    @Provides @Singleton
-    fun provideRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =
+    fun provideRetrofit(moshi: Moshi, okHttp: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl("https://back-spliteasy.onrender.com/api/v1/")
+            .baseUrl(BuildConfig.BASE_URL) // Asegúrate del import: com.spliteasy.spliteasy.BuildConfig
             .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(client)
+            .client(okHttp)
             .build()
-    @Provides @Singleton
-    fun provideGroupsService(retrofit: Retrofit): GroupsService =
-        retrofit.create(GroupsService::class.java)
 
-    @Provides @Singleton
-    fun provideExpensesService(retrofit: Retrofit): ExpensesService =
-        retrofit.create(ExpensesService::class.java)
-    @Provides @Singleton
-    fun provideAuthService(retrofit: Retrofit): AuthService =
+    @Provides @Singleton fun provideAuthService(retrofit: Retrofit): AuthService =
         retrofit.create(AuthService::class.java)
 
-    @Provides @Singleton
-    fun provideUsersService(retrofit: Retrofit): UsersService =
+    @Provides @Singleton fun provideUsersService(retrofit: Retrofit): UsersService =
         retrofit.create(UsersService::class.java)
+
+    @Provides @Singleton fun provideGroupsService(retrofit: Retrofit): GroupsService =
+        retrofit.create(GroupsService::class.java)
+
+    @Provides @Singleton fun provideExpensesService(retrofit: Retrofit): ExpensesService =
+        retrofit.create(ExpensesService::class.java)
 }

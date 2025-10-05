@@ -3,7 +3,7 @@ package com.spliteasy.spliteasy.ui.auth
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.recaptcha.RecaptchaAction
+import com.google.android.recaptcha.RecaptchaAction
 import com.spliteasy.spliteasy.core.RecaptchaHelper
 import com.spliteasy.spliteasy.data.remote.dto.SignUpRequest
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
@@ -22,6 +22,10 @@ class RegisterViewModel @Inject constructor(
     var error: String? = null
         private set
 
+    /**
+     * onDone(true)  -> registro OK
+     * onDone(false) -> fallo (revisa 'error')
+     */
     fun register(
         username: String,
         email: String,
@@ -36,11 +40,21 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val ctx = getApplication<Application>().applicationContext
+
+                // 1) reCAPTCHA para SIGNUP
                 val captchaToken = RecaptchaHelper.getToken(
                     context = ctx,
-                    action = RecaptchaAction("SIGNUP")
+                    action = RecaptchaAction.SIGNUP // usa DEFAULT si no validas acción en backend
                 )
 
+                if (captchaToken.isNullOrBlank()) {
+                    loading = false
+                    error = "No se pudo obtener el token de reCAPTCHA."
+                    onDone(false)
+                    return@launch
+                }
+
+                // 2) Sign-up
                 val req = SignUpRequest(
                     username = username,
                     email = email,
@@ -52,10 +66,11 @@ class RegisterViewModel @Inject constructor(
 
                 val res = repo.signup(req)
                 loading = false
+
                 if (res.isSuccess) {
                     onDone(true)
                 } else {
-                    error = res.exceptionOrNull()?.message
+                    error = res.exceptionOrNull()?.message ?: "No se pudo registrar."
                     onDone(false)
                 }
             } catch (e: Exception) {

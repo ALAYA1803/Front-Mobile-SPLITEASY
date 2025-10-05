@@ -1,23 +1,29 @@
 package com.spliteasy.spliteasy.core
 
+import android.app.Application
 import android.content.Context
-import com.google.android.gms.recaptcha.Recaptcha
-import com.google.android.gms.recaptcha.RecaptchaAction
-import com.google.android.gms.recaptcha.RecaptchaClient
-import com.google.android.gms.recaptcha.RecaptchaHandle
-import com.google.android.gms.recaptcha.RecaptchaResultData
-import kotlinx.coroutines.tasks.await
+import com.google.android.recaptcha.Recaptcha
+import com.google.android.recaptcha.RecaptchaAction
+import com.google.android.recaptcha.RecaptchaClient
 
 object RecaptchaHelper {
 
+    @Volatile private var client: RecaptchaClient? = null
+
+    private suspend fun getClient(appContext: Context, siteKey: String): RecaptchaClient {
+        client?.let { return it }
+        val application = appContext.applicationContext as Application
+        val created = Recaptcha.fetchClient(application, siteKey)
+        client = created
+        return created
+    }
+
     suspend fun getToken(
         context: Context,
-        action: RecaptchaAction = RecaptchaAction("SIGNUP"),
+        action: RecaptchaAction = RecaptchaAction.SIGNUP,
         siteKey: String = RecaptchaKeys.ANDROID_SITE_KEY
     ): String {
-        val client: RecaptchaClient = Recaptcha.getClient(context)
-        val handle: RecaptchaHandle = client.init(siteKey).await()
-        val result: RecaptchaResultData = client.execute(handle, action).await()
-        return result.tokenResult
+        val c = getClient(context, siteKey)
+        return c.execute(action).getOrThrow()
     }
 }

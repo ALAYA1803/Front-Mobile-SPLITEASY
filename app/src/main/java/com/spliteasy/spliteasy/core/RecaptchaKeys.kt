@@ -1,5 +1,7 @@
 package com.spliteasy.spliteasy.core
 
+import com.spliteasy.spliteasy.BuildConfig
+
 object RecaptchaKeys {
-    const val ANDROID_SITE_KEY = "6LdNpN4rAAAAANVIbclabwmZHpeovB9B71ump3f5"
+    const val ANDROID_SITE_KEY: String = BuildConfig.RECAPTCHA_SITE_KEY
 }

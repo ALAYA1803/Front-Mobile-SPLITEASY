@@ -20,8 +20,10 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
     ) {
         composable(Routes.LOGIN) {
             LoginScreen(
-                onSuccess = { isOwner ->
-                    nav.navigate(if (isOwner) Routes.REP_HOME else Routes.MEM_HOME) {
+                onSuccess = { isRepresentative ->
+                    nav.navigate(
+                        if (isRepresentative) Routes.REP_HOME else Routes.MEM_HOME
+                    ) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },

@@ -1,4 +1,3 @@
-// core/Routes.kt
 package com.spliteasy.spliteasy.core
 
 object Routes {

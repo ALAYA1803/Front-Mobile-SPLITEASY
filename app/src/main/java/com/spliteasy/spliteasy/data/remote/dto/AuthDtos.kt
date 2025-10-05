@@ -11,15 +11,6 @@ data class SignInRequest(
 typealias LoginRequest = SignInRequest
 
 @JsonClass(generateAdapter = true)
-data class UserDto(
-    val id: Long,
-    val username: String,
-    val email: String?,
-    val income: Double?,
-    val roles: List<String>
-)
-
-@JsonClass(generateAdapter = true)
 data class SignUpRequest(
     val username: String,
     val email: String,
@@ -29,8 +20,9 @@ data class SignUpRequest(
     val captchaToken: String
 )
 
+/** ¡Esta es la que faltaba y debe existir una sola vez! */
 @JsonClass(generateAdapter = true)
-data class AuthResponse(
+data class SignInResponse(
     val id: Long,
     val username: String,
     val token: String
