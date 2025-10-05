@@ -2,6 +2,8 @@ package com.spliteasy.spliteasy.di
 
 import com.spliteasy.spliteasy.data.remote.AuthInterceptor
 import com.spliteasy.spliteasy.data.remote.api.AuthService
+import com.spliteasy.spliteasy.data.remote.api.ExpensesService
+import com.spliteasy.spliteasy.data.remote.api.GroupsService
 import com.spliteasy.spliteasy.data.remote.api.UsersService
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -41,7 +43,13 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(client)
             .build()
+    @Provides @Singleton
+    fun provideGroupsService(retrofit: Retrofit): GroupsService =
+        retrofit.create(GroupsService::class.java)
 
+    @Provides @Singleton
+    fun provideExpensesService(retrofit: Retrofit): ExpensesService =
+        retrofit.create(ExpensesService::class.java)
     @Provides @Singleton
     fun provideAuthService(retrofit: Retrofit): AuthService =
         retrofit.create(AuthService::class.java)

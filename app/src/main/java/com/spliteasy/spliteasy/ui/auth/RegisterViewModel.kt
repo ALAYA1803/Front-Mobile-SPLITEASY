@@ -1,7 +1,10 @@
 package com.spliteasy.spliteasy.ui.auth
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.recaptcha.RecaptchaAction
+import com.spliteasy.spliteasy.core.RecaptchaHelper
 import com.spliteasy.spliteasy.data.remote.dto.SignUpRequest
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,12 +13,12 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
+    app: Application,
     private val repo: AuthRepository
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     var loading: Boolean = false
         private set
-
     var error: String? = null
         private set
 
@@ -31,27 +34,35 @@ class RegisterViewModel @Inject constructor(
         error = null
 
         viewModelScope.launch {
-            val res = repo.signup(
-                SignUpRequest(
+            try {
+                val ctx = getApplication<Application>().applicationContext
+                val captchaToken = RecaptchaHelper.getToken(
+                    context = ctx,
+                    action = RecaptchaAction("SIGNUP")
+                )
+
+                val req = SignUpRequest(
                     username = username,
                     email = email,
                     password = password,
                     income = income,
-                    roles = listOf(role)
+                    roles = listOf(role),
+                    captchaToken = captchaToken
                 )
-            )
-            loading = false
 
-
-            res.fold(
-                onSuccess = { _: Unit ->
+                val res = repo.signup(req)
+                loading = false
+                if (res.isSuccess) {
                     onDone(true)
-                },
-                onFailure = { e: Throwable ->
-                    error = e.message ?: "No se pudo registrar."
+                } else {
+                    error = res.exceptionOrNull()?.message
                     onDone(false)
                 }
-            )
+            } catch (e: Exception) {
+                loading = false
+                error = e.message ?: "No se pudo registrar."
+                onDone(false)
+            }
         }
     }
 }

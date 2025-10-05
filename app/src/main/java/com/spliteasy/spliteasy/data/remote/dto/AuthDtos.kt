@@ -5,7 +5,8 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class SignInRequest(
     val username: String,
-    val password: String
+    val password: String,
+    val captchaToken: String
 )
 typealias LoginRequest = SignInRequest
 
@@ -24,7 +25,8 @@ data class SignUpRequest(
     val email: String,
     val password: String,
     val income: Double,
-    val roles: List<String>
+    val roles: List<String>,
+    val captchaToken: String
 )
 
 @JsonClass(generateAdapter = true)

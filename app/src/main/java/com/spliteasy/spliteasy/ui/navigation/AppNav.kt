@@ -1,4 +1,3 @@
-// AppNav.kt
 package com.spliteasy.spliteasy.ui.navigation
 
 import androidx.compose.runtime.Composable
@@ -8,7 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.spliteasy.spliteasy.core.Routes
 import com.spliteasy.spliteasy.ui.auth.LoginScreen
 import com.spliteasy.spliteasy.ui.auth.RegisterScreen
-import com.spliteasy.spliteasy.ui.member.MemberHomeScreen
+import com.spliteasy.spliteasy.ui.member.MemberNavScaffold
 import com.spliteasy.spliteasy.ui.representative.RepresentativeHomeScreen
 
 @Composable
@@ -26,21 +25,23 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
-                onNavigateToRegister = {
-                    nav.navigate(Routes.REGISTER)
-                }
+                onNavigateToRegister = { nav.navigate(Routes.REGISTER) }
             )
         }
 
         composable(Routes.REGISTER) {
-            RegisterScreen(
-                onDone = {
-                    nav.popBackStack()
-                }
-            )
+            RegisterScreen(onDone = { nav.popBackStack() })
         }
 
         composable(Routes.REP_HOME) { RepresentativeHomeScreen() }
-        composable(Routes.MEM_HOME)  { MemberHomeScreen() }
+        composable(Routes.MEM_HOME) {
+            MemberNavScaffold(
+                onLogout = {
+                    nav.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
