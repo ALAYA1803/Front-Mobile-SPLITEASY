@@ -1,30 +1,23 @@
-// ui/member/MemberHomeViewModel.kt
 package com.spliteasy.spliteasy.ui.member
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.data.local.TokenDataStore
+import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
+import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
 import com.spliteasy.spliteasy.domain.repository.MemberRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-sealed interface MemberHomeUiState {
-    data object Loading : MemberHomeUiState
-    data class Ready(
-        val balance: BalanceUi,
-        val recent: List<ExpenseUi>
-    ) : MemberHomeUiState
-    data class Error(val message: String) : MemberHomeUiState
-}
-
-data class BalanceUi(val iOwe: Double, val meOwe: Double, val net: Double)
-data class ExpenseUi(val id: Long, val description: String, val amount: Double)
+import kotlin.math.round
 
 @HiltViewModel
 class MemberHomeViewModel @Inject constructor(
-    private val repo: MemberRepository
+    private val repo: MemberRepository,
+    private val tokenStore: TokenDataStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MemberHomeUiState>(MemberHomeUiState.Loading)
@@ -33,33 +26,139 @@ class MemberHomeViewModel @Inject constructor(
     fun load(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _uiState.value = MemberHomeUiState.Loading
-            val groupId = repo.getActiveGroupId() ?: run {
-                _uiState.value = MemberHomeUiState.Error("Selecciona un grupo primero.")
+
+            val currentUserId = tokenStore.readUserId()
+            if (currentUserId == null) {
+                _uiState.value = MemberHomeUiState.Empty("Usuario no logueado.")
                 return@launch
             }
 
-            val res = repo.getHomeSnapshot(groupId, forceRefresh)
-            res.fold(
-                onSuccess = { snapshot ->
-                    _uiState.value = MemberHomeUiState.Ready(
-                        balance = BalanceUi(
-                            iOwe = snapshot.balance.iOwe,
-                            meOwe = snapshot.balance.meOwe,
-                            net = snapshot.balance.net
-                        ),
-                        recent = snapshot.recent.map {
-                            ExpenseUi(
-                                id = it.id,
-                                description = it.description,
-                                amount = it.amount
-                            )
-                        }
-                    )
-                },
-                onFailure = { e ->
-                    _uiState.value = MemberHomeUiState.Error(e.message ?: "Error al cargar")
-                }
+            val hh = repo.findMyHouseholdByScanning(currentUserId).getOrElse {
+                _uiState.value = MemberHomeUiState.Error(it.message ?: "Error buscando hogar")
+                return@launch
+            }
+            if (hh == null) {
+                _uiState.value = MemberHomeUiState.Empty("No perteneces a ningún hogar.")
+                return@launch
+            }
+
+            val household = repo.fetchHousehold(hh.id).getOrElse {
+                _uiState.value = MemberHomeUiState.Error(it.message ?: "Error obteniendo hogar")
+                return@launch
+            }
+            val membersRaw = repo.fetchHouseholdMembers(hh.id).getOrElse { emptyList() }
+            val membersUi = mapMembersToUi(membersRaw)
+
+            val myContribs = repo.listMyMemberContributions(
+                memberId = currentUserId,
+                householdId = hh.id
+            ).getOrElse { emptyList() }
+
+            val normalized = myContribs.map { it.copy(status = normalizeStatus(it.status)) }
+            val (pendingList, paidList) = normalized.partition { it.status == "PENDING" }
+
+            // ⬇️ FIX: usar getAmount(it) en vez de it.monto
+            val totalPending = pendingList.sumOf { getAmount(it) }
+            val totalPaid    = paidList.sumOf { getAmount(it) }
+            val activeCount  = pendingList.size
+
+            _uiState.value = MemberHomeUiState.Ready(
+                householdName = household.name ?: "Mi hogar",
+                householdDescription = household.description ?: "",
+                currency = household.currency ?: "PEN",
+                members = membersUi,
+                totalPending = round2(totalPending),
+                totalPaid = round2(totalPaid),
+                activeContribsCount = activeCount
             )
+        }
+    }
+
+    fun refresh() = load(forceRefresh = true)
+
+    // ---------- helpers ----------
+    private fun normalizeStatus(s: String?): String {
+        val v = s?.trim()?.uppercase() ?: "PENDING"
+        return if (v == "PAGADO" || v == "PAID") "PAID" else "PENDING"
+    }
+
+    private fun round2(x: Double): Double = round(x * 100.0) / 100.0
+
+    /**
+     * Lee el monto sin importar si tu DTO lo llama "monto" (web) o "amount" (android).
+     * No toca tus DTOs y evita errores de compilación.
+     */
+    private fun getAmount(mc: MemberContributionDto): Double {
+        // Intenta campo "monto"
+        try {
+            val f = mc.javaClass.getDeclaredField("monto")
+            f.isAccessible = true
+            (f.get(mc) as? Number)?.toDouble()?.let { return it }
+        } catch (_: Throwable) { /* ignorar */ }
+
+        // Intenta campo "amount"
+        try {
+            val f = mc.javaClass.getDeclaredField("amount")
+            f.isAccessible = true
+            (f.get(mc) as? Number)?.toDouble()?.let { return it }
+        } catch (_: Throwable) { /* ignorar */ }
+
+        return 0.0
+    }
+
+    private suspend fun fetchUserSafely(id: Long): RawUserDto? =
+        repo.getUser(id).getOrNull()
+
+    private fun List<Any>.looksLikeUsers(): Boolean =
+        this.any { it is Map<*, *> && (it["username"] != null || it["email"] != null) }
+
+    private fun Map<*, *>.longOrNull(key: String): Long? =
+        (this[key] as? Number)?.toLong()
+
+    private fun Map<*, *>.stringOrEmpty(key: String): String =
+        (this[key] as? String) ?: ""
+
+    private suspend fun mapMembersToUi(raw: List<Any>): List<MemberItemUi> {
+        if (raw.isEmpty()) return emptyList()
+
+        return if (raw.looksLikeUsers()) {
+            raw.mapNotNull { any ->
+                val m = any as? Map<*, *> ?: return@mapNotNull null
+                val id = m.longOrNull("id") ?: return@mapNotNull null
+                val username = m.stringOrEmpty("username").ifBlank {
+                    m.stringOrEmpty("email").substringBefore("@", "Usuario")
+                }
+                val email = m.stringOrEmpty("email")
+                val roles = (m["roles"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
+                MemberItemUi(id = id, username = username, email = email, roles = roles)
+            }
+        } else {
+            val ids = raw.mapNotNull { any ->
+                val m = any as? Map<*, *> ?: return@mapNotNull null
+                m.longOrNull("userId")
+                    ?: (m["user"] as? Map<*, *>)?.longOrNull("id")
+                    ?: (m["id"] as? Number)?.toLong()
+            }.distinct()
+
+            val resolved = ids.map { uid ->
+                viewModelScope.async { uid to fetchUserSafely(uid) }
+            }.mapNotNull { it.await() }
+                .mapNotNull { (_, user) ->
+                    user?.let {
+                        val username = it.username?.ifBlank {
+                            it.email?.substringBefore("@", "Usuario")
+                        } ?: it.email?.substringBefore("@", "Usuario") ?: "Usuario"
+
+                        MemberItemUi(
+                            id = it.id,
+                            username = username,
+                            email = it.email ?: "",
+                            roles = it.roles ?: emptyList()
+                        )
+                    }
+                }
+
+            resolved
         }
     }
 }

@@ -28,16 +28,20 @@ class AuthRepositoryImpl @Inject constructor(
         // 3) Leer usuario con Authorization
         val user = usersApi.getUserById(auth.id, bearer = "Bearer $token")
 
-        // --- ARREGLO: no usar primer rol; usar contains sobre la lista completa ---
+        // 👉 ADICIÓN: persistir userId para que el app pueda usarlo luego
+        // (asumiendo que user.id es Long; si fuera Int, usa user.id.toLong())
+        tokenStore.saveUserId(user.id)
+
+        // --- ARREGLO previo: no usar primer rol; usar contains sobre la lista completa ---
         val rolesUpper = user.roles.map { it.trim().uppercase() }
         Log.d("AuthRepo", "roles=$rolesUpper (userId=${user.id}, username=${user.username})")
 
-        // Acepta español e inglés, por si acaso
+        // Acepta español e inglés
         val isRepresentative = rolesUpper.any {
             it == "ROLE_REPRESENTANTE" || it == "ROLE_REPRESENTATIVE"
         }
 
-        // Guarda también el rol principal “normalizado” para reusar en UI si quieres
+        // Guarda también el rol principal “normalizado” (útil para UI si lo lees)
         val mainRole = if (isRepresentative) "ROLE_REPRESENTANTE"
         else rolesUpper.firstOrNull() ?: ""
         tokenStore.saveRole(mainRole)

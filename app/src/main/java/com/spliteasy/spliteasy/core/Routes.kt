@@ -12,6 +12,10 @@ object Routes {
     const val ADD_EXPENSE = "add_expense"
     const val EXPENSE_DETAIL = "expense_detail/{id}"
 
+    const val HOUSEHOLD = "household"
+    const val HOUSEHOLD_MEMBERS = "household_members"
+    const val INVITE = "invite"
+    const val SETTLE = "settle"
     // Representante
     const val REP_HOME = "rep_home"
 }

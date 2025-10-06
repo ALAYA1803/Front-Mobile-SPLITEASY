@@ -85,8 +85,12 @@ fun MemberNavScaffold(
             }
             composable(Routes.MEM_PROFILE) { MemberProfileScreen(onLogout = onLogout) }
             composable(Routes.ADD_EXPENSE) { AddExpenseScreen(onDone = { nav.popBackStack() }) }
-            composable(Routes.EXPENSE_DETAIL) {
-                ExpenseDetailScreen(expenseId = 0L, onBack = { nav.popBackStack() })
+            composable("${Routes.EXPENSE_DETAIL}/{expenseId}") { backStackEntry ->
+                val expenseId = backStackEntry.arguments?.getString("expenseId")?.toLongOrNull() ?: 0L
+                ExpenseDetailScreen(
+                    expenseId = expenseId,
+                    onBack = { nav.popBackStack() }
+                )
             }
         }
     }

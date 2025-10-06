@@ -15,7 +15,6 @@ object DataStoreModule {
 
     @Provides
     @Singleton
-    fun provideTokenDataStore(
-        @ApplicationContext context: Context
-    ): TokenDataStore = TokenDataStore(context)
+    fun provideTokenDataStore(@ApplicationContext ctx: Context): TokenDataStore =
+        TokenDataStore(ctx)
 }

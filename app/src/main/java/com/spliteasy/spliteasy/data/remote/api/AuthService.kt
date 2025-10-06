@@ -9,14 +9,14 @@ import retrofit2.http.POST
 
 interface AuthService {
 
-    @POST("api/v1/authentication/sign-in")
+    @POST("authentication/sign-in")
     suspend fun signIn(
         @Body req: LoginRequest,
         // dejamos el header por compatibilidad, pero puedes pasarlo null
         @Header("X-Integrity-Token") integrityToken: String? = null
     ): SignInResponse
 
-    @POST("api/v1/authentication/sign-up")
+    @POST("authentication/sign-up")
     suspend fun signUp(
         @Body req: SignUpRequest,
         @Header("X-Integrity-Token") integrityToken: String? = null
