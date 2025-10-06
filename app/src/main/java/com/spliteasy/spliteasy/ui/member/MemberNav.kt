@@ -1,15 +1,23 @@
 package com.spliteasy.spliteasy.ui.member
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.Assessment
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Wallet
-import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,58 +32,58 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.spliteasy.spliteasy.ui.member.contribs.MembContribsViewModel // ✅ Import correcto
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
+import com.spliteasy.spliteasy.ui.member.contribs.MembContribsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
+import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
 
-/* ---------------------- Paleta SpliteEasy (oscura) ---------------------- */
-private val BrandPrimary   = Color(0xFF1565C0)
-private val BrandSecondary = Color(0xFFFF6F00)
-private val SuccessColor   = Color(0xFF2E7D32)
-private val InfoColor      = Color(0xFF4F46E5)
+// ---------- Paleta ----------
+private val BrandPrimary = Color(0xFF1565C0)
+private val BgMain       = Color(0xFF1A1A1A)
+private val BgCard       = Color(0xFF2D2D2D)
+private val Border       = Color(0xFF404040)
+private val TextPri      = Color(0xFFF8F9FA)
+private val TextSec      = Color(0xFFADB5BD)
 
-private val BgMain   = Color(0xFF1A1A1A) // --background-main
-private val BgCard   = Color(0xFF2D2D2D) // --background-card
-private val Border   = Color(0xFF404040) // --border-color
-private val TextPri  = Color(0xFFF8F9FA) // --text-primary
-private val TextSec  = Color(0xFFADB5BD) // --text-secondary
-
-/* --------------------------- Destinos de Miembro --------------------------- */
-sealed class MemberDest(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    data object Home           : MemberDest("member/home",           "Inicio",         Icons.Rounded.Home)
-    data object Contributions  : MemberDest("member/contributions",  "Contribuciones", Icons.Rounded.Wallet)
-    data object Status         : MemberDest("member/status",         "Estado",         Icons.Rounded.Assessment)
-    data object Settings       : MemberDest("member/settings",       "Ajustes",        Icons.Rounded.Settings)
+// ---------- Destinos ----------
+sealed class MemberDest(
+    val route: String,
+    val label: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    data object Home          : MemberDest("member/home",          "Inicio",         Icons.Rounded.Home)
+    data object Contributions : MemberDest("member/contributions", "Contribuciones", Icons.Rounded.Wallet)
+    data object Status        : MemberDest("member/status",        "Estado",         Icons.Rounded.Assessment)
+    data object Settings      : MemberDest("member/settings",      "Ajustes",        Icons.Rounded.Settings)
 }
-private val memberTabs = listOf(MemberDest.Home, MemberDest.Contributions, MemberDest.Status, MemberDest.Settings)
+private val memberTabs = listOf(
+    MemberDest.Home, MemberDest.Contributions, MemberDest.Status, MemberDest.Settings
+)
 
-/* ------------------------- Root de navegación miembro ------------------------- */
+// ---------- Root ----------
 @Composable
-fun MemberNavRoot(modifier: Modifier = Modifier, onLogout: () -> Unit = {}) {
+fun MemberNavRoot(
+    modifier: Modifier = Modifier,
+    onLogout: () -> Unit = {}
+) {
     val nav = rememberNavController()
 
+    // Home VM para saludar y (opcionalmente) sacar el userId
     val homeVm: MemberHomeViewModel = hiltViewModel()
     val homeState by homeVm.uiState.collectAsState()
-
     LaunchedEffect(Unit) { homeVm.load() }
 
-    val currentUserName: String = remember(homeState) {
+    val currentUserName = remember(homeState) {
         (homeState as? MemberHomeUiState.Ready)?.currentUserName ?: "Usuario"
     }
     val initial = currentUserName.trim().ifBlank { "U" }.first().uppercaseChar().toString()
 
+    // Si tu estado Ready expone el ID, úsalo:
+    val currentUserId: Long? = (homeState as? MemberHomeUiState.Ready)?.currentUserId
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = BgMain,
-        // 👇 Esto hace que Scaffold respete safe areas (status bar / notch / gesture nav)
+        // Respeta safe areas (status bar / gestos)
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             MemberTopBar(
@@ -100,20 +108,38 @@ fun MemberNavRoot(modifier: Modifier = Modifier, onLogout: () -> Unit = {}) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 composable(MemberDest.Home.route) {
-                    MemberHomeScreen(onAddExpense = {}, onOpenExpense = {})
+                    // Implementación real de tu pantalla de inicio
+                    MemberHomeScreen(
+                        onAddExpense = { /* TODO */ },
+                        onOpenExpense = { /* TODO */ }
+                    )
                 }
-                composable(MemberDest.Contributions.route) { MembContribsScreen() }
+
+                composable(MemberDest.Contributions.route) {
+                    if (currentUserId != null && currentUserId > 0) {
+                        // Pantalla real de contribuciones (con upload de boleta)
+                        MembContribsScreen(currentUserId = currentUserId)
+                    } else {
+                        // Fallback mientras llega el ID
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Cargando usuario…", color = TextSec)
+                        }
+                    }
+                }
+
                 composable(MemberDest.Status.route) {
                     MembStatusScreen()
                 }
-                composable(MemberDest.Settings.route)      { MembSettingsScreen() }
+
+                composable(MemberDest.Settings.route) {
+                    MembSettingsScreen()
+                }
             }
         }
     }
 }
 
-
-/* --------------------------------- TopBar --------------------------------- */
+// ---------- TopBar ----------
 @Composable
 private fun MemberTopBar(
     title: String,
@@ -122,12 +148,10 @@ private fun MemberTopBar(
     username: String,
     onLogout: () -> Unit
 ) {
-    // Contenedor de la app bar respetando la altura de la status bar
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // 👇 Respeta el status bar / notch SOLO en el top bar
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.statusBars) // respeta notch/status bar
             .background(BgMain)
     ) {
         Row(
@@ -137,7 +161,6 @@ private fun MemberTopBar(
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar (iniciales)
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -165,7 +188,6 @@ private fun MemberTopBar(
                 Text(text = subtitle, color = TextSec, style = MaterialTheme.typography.bodySmall)
             }
 
-            // Botón cerrar sesión
             IconButton(onClick = onLogout) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Logout,
@@ -175,12 +197,11 @@ private fun MemberTopBar(
             }
         }
 
-        // Borde inferior (Divider) para separar y evitar ver borde en todos los lados
-        Divider(color = Border, thickness = 1.dp)
+        HorizontalDivider(color = Border, thickness = 1.dp)
     }
 }
 
-/* ------------------------------- BottomBar ------------------------------- */
+// ---------- BottomBar ----------
 @Composable
 private fun MemberBottomBar(
     tabs: List<MemberDest>,
@@ -202,7 +223,9 @@ private fun MemberBottomBar(
                     nav.navigate(dest.route) {
                         launchSingleTop = true
                         restoreState = true
-                        popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                        popUpTo(nav.graph.findStartDestination().id) {
+                            saveState = true
+                        }
                     }
                 },
                 icon = {
@@ -228,20 +251,5 @@ private fun MemberBottomBar(
                 )
             )
         }
-    }
-}
-
-/* --------------------- Stubs (reemplaza con tus pantallas) --------------------- */
-@Composable
-private fun MembContribsScreen(vm: MembContribsViewModel = hiltViewModel()) {
-    Box(Modifier.fillMaxSize().background(BgMain), contentAlignment = Alignment.Center) {
-        Text("Contribuciones", color = TextPri)
-    }
-}
-
-@Composable
-private fun MembSettingsScreen() {
-    Box(Modifier.fillMaxSize().background(BgMain), contentAlignment = Alignment.Center) {
-        Text("Ajustes", color = TextPri)
     }
 }

@@ -7,6 +7,8 @@ import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
 import com.spliteasy.spliteasy.domain.repository.MemberRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ data class ContribRow(
     val billDate: String?,
     val billAmount: Double?,
     val receipts: List<PaymentReceiptDto>,
-    val statusUi: String // PENDIENTE | EN_REVISION | RECHAZADO | PAGADO
+    val statusUi: String
 )
 
 sealed interface ContribsUiState {
@@ -54,35 +56,35 @@ class MembContribsViewModel @Inject constructor(
                 return@launch
             }
 
-            val rows = mcs.map { mc ->
-                async {
-                    val contrib = repo.getContribution(mc.contributionId).getOrNull()
-                    val bill = contrib?.billId?.let { repo.getBill(it).getOrNull() }
-                    val receipts = repo.listReceipts(mc.id).getOrElse { emptyList() }
-                    val hasPendingReceipt = receipts.any { it.status == "PENDING" }
+            val rows = coroutineScope {
+                mcs.map { mc ->
+                    async {
+                        val contrib = repo.getContribution(mc.contributionId).getOrNull()
+                        val bill = contrib?.billId?.let { repo.getBill(it).getOrNull() }
+                        val receipts = repo.listReceipts(mc.id).getOrElse { emptyList() }
+                        val hasPendingReceipt = receipts.any { it.status.equals("PENDING", true) }
 
-                    val statusUi = when {
-                        mc.status == "PAID" -> "PAGADO"
-                        hasPendingReceipt -> "EN_REVISION"
-                        mc.status == "RECHAZADO" -> "RECHAZADO"
-                        else -> "PENDIENTE"
+                        val statusUi = when {
+                            mc.status.equals("PAID", true) || mc.status.equals("PAGADO", true) -> "PAGADO"
+                            hasPendingReceipt -> "EN_REVISION"
+                            mc.status.equals("RECHAZADO", true) || mc.status.equals("REJECTED", true) -> "RECHAZADO"
+                            else -> "PENDIENTE"
+                        }
+
+                        ContribRow(
+                            mc = mc,
+                            contribDescription = contrib?.description,
+                            strategy = contrib?.strategy,
+                            dueDate = contrib?.dueDate,
+                            billDescription = bill?.description,
+                            billDate = bill?.date,
+                            billAmount = bill?.amount,
+                            receipts = receipts,
+                            statusUi = statusUi
+                        )
                     }
-
-                    ContribRow(
-                        mc = mc,
-                        contribDescription = contrib?.description,
-                        strategy = contrib?.strategy,
-                        dueDate = contrib?.dueDate,
-                        billDescription = bill?.description,
-                        billDate = bill?.date,
-                        billAmount = bill?.amount,
-                        receipts = receipts,
-                        statusUi = statusUi
-                    )
-                }
-            }.map { it.await() }
-
-            // igual que web: filtra pagadas si quieres
+                }.awaitAll()
+            }
             _ui.value = ContribsUiState.Ready(rows.filter { it.statusUi != "PAGADO" })
         }
     }
@@ -91,8 +93,6 @@ class MembContribsViewModel @Inject constructor(
         viewModelScope.launch {
             val res = repo.uploadReceipt(memberContributionId, filePart)
             onDone(res.isSuccess)
-            // Puedes refrescar la fila puntual o recargar todo:
-            // load(currentUserId)
         }
     }
 }
