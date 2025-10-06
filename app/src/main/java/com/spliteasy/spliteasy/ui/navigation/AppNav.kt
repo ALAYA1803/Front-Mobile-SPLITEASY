@@ -7,7 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.spliteasy.spliteasy.core.Routes
 import com.spliteasy.spliteasy.ui.auth.LoginScreen
 import com.spliteasy.spliteasy.ui.auth.RegisterScreen
-import com.spliteasy.spliteasy.ui.member.MemberNavScaffold
+import com.spliteasy.spliteasy.ui.member.MemberNavRoot   // 👈 cambia esta import
 import com.spliteasy.spliteasy.ui.representative.RepresentativeHomeScreen
 
 @Composable
@@ -36,8 +36,9 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
         }
 
         composable(Routes.REP_HOME) { RepresentativeHomeScreen() }
+
         composable(Routes.MEM_HOME) {
-            MemberNavScaffold(
+            MemberNavRoot(
                 onLogout = {
                     nav.navigate(Routes.LOGIN) {
                         popUpTo(0) { inclusive = true }
