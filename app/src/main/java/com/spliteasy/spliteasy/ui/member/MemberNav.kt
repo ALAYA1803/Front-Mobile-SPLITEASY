@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
 
 /* ---------------------- Paleta SpliteEasy (oscura) ---------------------- */
 private val BrandPrimary   = Color(0xFF1565C0)
@@ -101,7 +102,9 @@ fun MemberNavRoot(modifier: Modifier = Modifier, onLogout: () -> Unit = {}) {
                     MemberHomeScreen(onAddExpense = {}, onOpenExpense = {})
                 }
                 composable(MemberDest.Contributions.route) { MembContribsScreen() }
-                composable(MemberDest.Status.route)        { MembStatusScreen() }
+                composable(MemberDest.Status.route) {
+                    MembStatusScreen()
+                }
                 composable(MemberDest.Settings.route)      { MembSettingsScreen() }
             }
         }
@@ -232,13 +235,6 @@ private fun MemberBottomBar(
 private fun MembContribsScreen(vm: MembContribsViewModel = hiltViewModel()) {
     Box(Modifier.fillMaxSize().background(BgMain), contentAlignment = Alignment.Center) {
         Text("Contribuciones", color = TextPri)
-    }
-}
-
-@Composable
-private fun MembStatusScreen() {
-    Box(Modifier.fillMaxSize().background(BgMain), contentAlignment = Alignment.Center) {
-        Text("Estado", color = TextPri)
     }
 }
 
