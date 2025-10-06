@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 import com.spliteasy.spliteasy.ui.representative.home.RepCreateHouseholdScreen
 import com.spliteasy.spliteasy.ui.representative.home.create.RepCreateHouseholdViewModel
 import com.spliteasy.spliteasy.ui.representative.members.RepMembersScreen
+import com.spliteasy.spliteasy.ui.representative.bills.RepBillsScreen
 
 /* Paleta */
 private val BrandPrimary   = Color(0xFF1565C0)
@@ -183,7 +184,7 @@ fun RepresentativeNavRoot(
                     )
                 }
                 composable(RepDest.Members.route) { RepMembersScreen() }
-                composable(RepDest.Bills.route)         { StubCenter("Facturas") }
+                composable(RepDest.Bills.route)         { RepBillsScreen() }
                 composable(RepDest.Contributions.route) { StubCenter("Contribuciones") }
                 composable(RepDest.Settings.route)      { StubCenter("Ajustes") }
             }

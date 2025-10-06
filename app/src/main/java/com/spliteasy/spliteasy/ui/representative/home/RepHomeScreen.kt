@@ -1,5 +1,6 @@
 package com.spliteasy.spliteasy.ui.representative.home
 
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,9 +24,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
-import java.util.*
+import java.util.Currency
+import java.util.Locale
+import androidx.compose.foundation.BorderStroke
 
-/* === Paleta coherente con MemberHomeScreen === */
+/* === Paleta coherente con la app (oscuro) === */
 private val BrandPrimary   = Color(0xFF1565C0) // azul
 private val BrandSecondary = Color(0xFFFF6F00) // naranja
 private val SuccessColor   = Color(0xFF2E7D32) // verde
@@ -40,7 +43,7 @@ private val TextSecondary = Color(0xFFADB5BD)
 @Composable
 fun RepHomeScreen(
     vm: RepHomeViewModel = hiltViewModel(),
-    onCreateHousehold: () -> Unit = {} // <- conéctalo a tu flujo de creación/navegación
+    onCreateHousehold: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
     LaunchedEffect(Unit) { vm.load() }
@@ -110,9 +113,6 @@ private fun OnboardingCard(onCreate: () -> Unit) {
 
 @Composable
 private fun Dashboard(ui: RepHomeUi) {
-    val currencyCode = ui.currency.ifBlank { "PEN" }
-    val currencyFmt = remember(currencyCode) { currencyFormatter(currencyCode) }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -127,35 +127,36 @@ private fun Dashboard(ui: RepHomeUi) {
         }
 
         item {
-            Column(
-                Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatCard(
-                        title = "Miembros",
-                        value = ui.membersCount.toString(),
-                        icon = Icons.Rounded.Groups,
-                        tint = BrandPrimary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatCard(
-                        title = "Facturas",
-                        value = ui.billsCount.toString(),
-                        icon = Icons.Rounded.ReceiptLong,
-                        tint = BrandSecondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatCard(
-                        title = "Contribuciones",
-                        value = ui.contributionsCount.toString(),
-                        icon = Icons.Rounded.Wallet,
-                        tint = InfoColor,
-                        modifier = Modifier.weight(1f)
-                    )
-
+            Section(title = "Resumen rápido") {
+                Column(
+                    Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatCard(
+                            title = "Miembros",
+                            value = ui.membersCount,
+                            icon = Icons.Rounded.Groups,
+                            tint = BrandPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            title = "Facturas",
+                            value = ui.billsCount,
+                            icon = Icons.Rounded.ReceiptLong,
+                            tint = BrandSecondary,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatCard(
+                            title = "Contribuciones",
+                            value = ui.contributionsCount,
+                            icon = Icons.Rounded.Wallet,
+                            tint = InfoColor,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -170,89 +171,142 @@ private fun Hero(
     householdDesc: String
 ) {
     val gradient = Brush.verticalGradient(
-        colors = listOf(BrandPrimary.copy(alpha = 0.18f), InfoColor.copy(alpha = 0.10f))
+        listOf(BrandPrimary.copy(alpha = .22f), Color.Transparent)
     )
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = BgMain,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
-    ) {
-        Box(
+    Surface(color = BgMain) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(gradient)
-                .padding(top = 20.dp, bottom = 18.dp)
+                .padding(top = 18.dp, bottom = 8.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            Column(Modifier.padding(horizontal = 16.dp)) {
-                Text(
-                    "Resumen",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = TextPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                Spacer(Modifier.height(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = CardBg,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp,
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        width = 1.dp,
-                        brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
-                    )
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Rounded.AccountTree,
-                                contentDescription = null,
-                                tint = BrandPrimary
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = if (householdName.isBlank()) "—" else householdName,
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary
-                                ),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        if (householdDesc.isNotBlank()) {
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                householdDesc,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
-                            )
-                        }
-                    }
-                }
+            Text(
+                "Panel del hogar",
+                color = TextSecondary,
+                style = MaterialTheme.typography.labelLarge
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = if (householdName.isBlank()) "—" else householdName,
+                color = TextPrimary,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (householdDesc.isNotBlank()) {
+                Spacer(Modifier.height(6.dp))
+                Text(householdDesc, color = TextSecondary)
             }
+
+            // Pills de estado/moneda
+            Spacer(Modifier.height(14.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AssistChip(
+                    onClick = {},
+                    enabled = true,
+                    label = { Text("Moneda: PEN") },
+                    leadingIcon = { /* … */ },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = CardBg,
+                        labelColor = TextPrimary
+                    ),
+                    border = BorderStroke(1.dp, BorderColor)
+                )
+                AssistChip(
+                    onClick = {},
+                    label = { Text("Activo") },
+                    leadingIcon = {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = SuccessColor)
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = CardBg,
+                        labelColor = TextPrimary
+                    ),
+                    border = BorderStroke(1.dp, BorderColor)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Divider(color = BorderColor)
         }
+    }
+}
+
+@Composable
+private fun QuickActionsRow(
+    onMembers: (() -> Unit)? = null,
+    onBills:   (() -> Unit)? = null,
+    onContrib: (() -> Unit)? = null
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ActionChip("Miembros", Icons.Rounded.Groups, BrandPrimary) { onMembers?.invoke() }
+        ActionChip("Facturas", Icons.Rounded.ReceiptLong, BrandSecondary) { onBills?.invoke() }
+        ActionChip("Aportes", Icons.Rounded.Wallet, InfoColor) { onContrib?.invoke() }
+    }
+    Spacer(Modifier.height(4.dp))
+}
+
+@Composable
+private fun ActionChip(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = false,
+        onClick = onClick,
+        enabled = true,
+        label = { Text(text) },
+        leadingIcon = { /* … */ },
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = CardBg,
+            labelColor = TextPrimary
+        ),
+        border = BorderStroke(1.dp, BorderColor),
+        shape = RoundedCornerShape(12.dp)
+    )
+}
+
+@Composable
+private fun Section(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(Modifier.fillMaxWidth()) {
+        Text(
+            title,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = TextPrimary,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+        )
+        content()
     }
 }
 
 @Composable
 private fun StatCard(
     title: String,
-    value: String,
+    value: Int,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     tint: Color,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    val animated by animateIntAsState(targetValue = value, label = "stat")
+
+    ElevatedCard(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = CardBg,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = ButtonDefaults.outlinedButtonBorder.copy(
-            width = 1.dp,
-            brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
-        )
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = CardBg),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -264,17 +318,17 @@ private fun StatCard(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(tint),
+                    .background(tint.copy(alpha = .18f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = Color.White)
+                Icon(icon, contentDescription = null, tint = tint)
             }
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.labelLarge.copy(color = TextSecondary))
                 Text(
-                    value,
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    animated.toString(),
+                    style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )

@@ -72,7 +72,7 @@ dependencies {
 
     // Icons extended (material 1.x)
     implementation("androidx.compose.material:material-icons-extended")
-
+    implementation ("androidx.compose.ui:ui-text")
     // Pull-to-refresh oficial (material 1.x)
     implementation("androidx.compose.material:material:1.7.5")
 
