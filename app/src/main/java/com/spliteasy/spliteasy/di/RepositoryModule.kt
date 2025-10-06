@@ -4,6 +4,9 @@ import com.spliteasy.spliteasy.data.repository.AuthRepositoryImpl
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
 import com.spliteasy.spliteasy.data.repository.MemberRepositoryImpl
 import com.spliteasy.spliteasy.domain.repository.MemberRepository
+import com.spliteasy.spliteasy.data.repository.AccountRepositoryImpl
+import com.spliteasy.spliteasy.domain.repository.AccountRepository
+
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -18,4 +21,7 @@ abstract class RepositoryModule {
 
     @Binds @Singleton
     abstract fun bindMemberRepository(impl: MemberRepositoryImpl): MemberRepository
+
+    @Binds @Singleton
+    abstract fun bindAccountRepository(impl: AccountRepositoryImpl): AccountRepository
 }

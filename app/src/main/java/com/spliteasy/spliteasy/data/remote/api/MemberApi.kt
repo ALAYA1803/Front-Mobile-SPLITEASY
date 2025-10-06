@@ -1,12 +1,16 @@
 package com.spliteasy.spliteasy.data.remote.api
 
-import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
+import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
+import com.spliteasy.spliteasy.data.remote.dto.MemberDto   // ← import nuevo
 
 interface MemberApi {
     suspend fun listHouseholds(): List<HouseholdDto>
     suspend fun getHousehold(id: Long): HouseholdDto
-    suspend fun listHouseholdMembers(householdId: Long): List<Any>
+
+    // ⚠️ Cambiamos Any → MemberDto
+    suspend fun listHouseholdMembers(householdId: Long): List<MemberDto>
+
     suspend fun listMemberContributions(householdId: Long, memberId: Long): List<MemberContributionDto>
 }
 
@@ -16,7 +20,14 @@ class MemberApiImpl(
 ) : MemberApi {
     override suspend fun listHouseholds() = groups.listHouseholds()
     override suspend fun getHousehold(id: Long) = groups.getHousehold(id)
-    override suspend fun listHouseholdMembers(householdId: Long) = groups.listHouseholdMembers(householdId)
+
+    // ⚠️ Antes llamaba a groups.listHouseholdMembers(hhId)
+    //     Ahora el backend es /household-members (sin hhId), así que traemos todo y filtramos.
+    override suspend fun listHouseholdMembers(householdId: Long): List<MemberDto> =
+        groups
+            .listAllHouseholdMembers()                  // ← NUEVO método en GroupsService
+            .filter { it.normalizedHouseholdId() == householdId }
+
     override suspend fun listMemberContributions(householdId: Long, memberId: Long) =
         expenses.listMemberContributions(householdId, memberId)
 }

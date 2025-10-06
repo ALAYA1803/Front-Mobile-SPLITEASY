@@ -33,8 +33,8 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import androidx.compose.runtime.rememberCoroutineScope
 
-/* Paleta */
 private val BrandPrimary = Color(0xFF1565C0)
 private val InfoColor    = Color(0xFF1A73E8)
 private val SuccessColor = Color(0xFF2E7D32)

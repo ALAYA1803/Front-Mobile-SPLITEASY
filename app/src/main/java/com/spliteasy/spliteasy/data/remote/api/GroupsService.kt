@@ -1,8 +1,12 @@
 package com.spliteasy.spliteasy.data.remote.api
 
 import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
+import com.spliteasy.spliteasy.data.remote.dto.MemberDto
+import com.spliteasy.spliteasy.data.remote.api.CreateHouseholdRequest
 import retrofit2.http.GET
 import retrofit2.http.Path
+import retrofit2.http.POST
+import retrofit2.http.Body
 
 interface GroupsService {
     @GET("households")
@@ -11,6 +15,9 @@ interface GroupsService {
     @GET("households/{id}")
     suspend fun getHousehold(@Path("id") id: Long): HouseholdDto
 
-    @GET("households/{id}/members")
-    suspend fun listHouseholdMembers(@Path("id") id: Long): List<Any>
+    @GET("household-members")
+    suspend fun listAllHouseholdMembers(): List<MemberDto>
+
+    @POST("households")
+    suspend fun createHousehold(@Body body: Map<String, Any>): HouseholdDto
 }

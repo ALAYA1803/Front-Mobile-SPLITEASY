@@ -8,9 +8,8 @@ import com.spliteasy.spliteasy.data.remote.dto.BillDto
 import com.spliteasy.spliteasy.data.remote.dto.ContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
-import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
 import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
-
+import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
 interface WebMemberApi {
 
     // Households
