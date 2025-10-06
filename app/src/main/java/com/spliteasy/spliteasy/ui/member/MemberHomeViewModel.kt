@@ -6,6 +6,7 @@ import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
 import com.spliteasy.spliteasy.domain.repository.MemberRepository
+import com.spliteasy.spliteasy.util.JwtUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.async
@@ -27,12 +28,18 @@ class MemberHomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = MemberHomeUiState.Loading
 
-            val currentUserId = tokenStore.readUserId()
+            // 1) Identidad del usuario: ID desde DataStore; si falta, obtén de JWT
+            val storedId = tokenStore.readUserId()
+            val token = tokenStore.readToken()
+            var currentUserId: Long? = storedId ?: JwtUtils.userId(token)
+            var currentUserName: String? = JwtUtils.username(token) // <- reemplaza readUsername
+
             if (currentUserId == null) {
                 _uiState.value = MemberHomeUiState.Empty("Usuario no logueado.")
                 return@launch
             }
 
+            // 2) Hogar
             val hh = repo.findMyHouseholdByScanning(currentUserId).getOrElse {
                 _uiState.value = MemberHomeUiState.Error(it.message ?: "Error buscando hogar")
                 return@launch
@@ -46,9 +53,17 @@ class MemberHomeViewModel @Inject constructor(
                 _uiState.value = MemberHomeUiState.Error(it.message ?: "Error obteniendo hogar")
                 return@launch
             }
+
+            // 3) Miembros
             val membersRaw = repo.fetchHouseholdMembers(hh.id).getOrElse { emptyList() }
             val membersUi = mapMembersToUi(membersRaw)
 
+            // si aún no tenemos nombre, úsalo desde la lista por id
+            if (currentUserName.isNullOrBlank()) {
+                currentUserName = membersUi.firstOrNull { it.id == currentUserId }?.username
+            }
+
+            // 4) Mis contribuciones
             val myContribs = repo.listMyMemberContributions(
                 memberId = currentUserId,
                 householdId = hh.id
@@ -57,11 +72,11 @@ class MemberHomeViewModel @Inject constructor(
             val normalized = myContribs.map { it.copy(status = normalizeStatus(it.status)) }
             val (pendingList, paidList) = normalized.partition { it.status == "PENDING" }
 
-            // ⬇️ FIX: usar getAmount(it) en vez de it.monto
             val totalPending = pendingList.sumOf { getAmount(it) }
             val totalPaid    = paidList.sumOf { getAmount(it) }
             val activeCount  = pendingList.size
 
+            // 5) Publica el estado listo (incluye identidad para saludo correcto)
             _uiState.value = MemberHomeUiState.Ready(
                 householdName = household.name ?: "Mi hogar",
                 householdDescription = household.description ?: "",
@@ -69,14 +84,17 @@ class MemberHomeViewModel @Inject constructor(
                 members = membersUi,
                 totalPending = round2(totalPending),
                 totalPaid = round2(totalPaid),
-                activeContribsCount = activeCount
+                activeContribsCount = activeCount,
+                currentUserId = currentUserId,
+                currentUserName = currentUserName
             )
         }
     }
 
     fun refresh() = load(forceRefresh = true)
 
-    // ---------- helpers ----------
+    /* ----------------------- helpers ----------------------- */
+
     private fun normalizeStatus(s: String?): String {
         val v = s?.trim()?.uppercase() ?: "PENDING"
         return if (v == "PAGADO" || v == "PAID") "PAID" else "PENDING"
@@ -84,25 +102,20 @@ class MemberHomeViewModel @Inject constructor(
 
     private fun round2(x: Double): Double = round(x * 100.0) / 100.0
 
-    /**
-     * Lee el monto sin importar si tu DTO lo llama "monto" (web) o "amount" (android).
-     * No toca tus DTOs y evita errores de compilación.
-     */
+    /** Lee monto como "monto" (web) o "amount" (android) sin romper DTOs. */
     private fun getAmount(mc: MemberContributionDto): Double {
-        // Intenta campo "monto"
+        // "monto"
         try {
             val f = mc.javaClass.getDeclaredField("monto")
             f.isAccessible = true
             (f.get(mc) as? Number)?.toDouble()?.let { return it }
-        } catch (_: Throwable) { /* ignorar */ }
-
-        // Intenta campo "amount"
+        } catch (_: Throwable) {}
+        // "amount"
         try {
             val f = mc.javaClass.getDeclaredField("amount")
             f.isAccessible = true
             (f.get(mc) as? Number)?.toDouble()?.let { return it }
-        } catch (_: Throwable) { /* ignorar */ }
-
+        } catch (_: Throwable) {}
         return 0.0
     }
 
