@@ -9,6 +9,7 @@ import com.spliteasy.spliteasy.data.remote.api.UsersService
 import com.spliteasy.spliteasy.data.remote.api.WebMemberApi
 import com.spliteasy.spliteasy.data.remote.api.AccountService
 import com.spliteasy.spliteasy.data.remote.api.HouseholdsService
+import com.spliteasy.spliteasy.data.remote.api.HouseholdMembersService
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.ContributionsService
 import com.squareup.moshi.Moshi
@@ -112,4 +113,7 @@ object NetworkModule {
     @Provides @Singleton
     fun provideHouseholdsService(retrofit: Retrofit): HouseholdsService =
         retrofit.create(HouseholdsService::class.java)
+    @Provides
+    fun provideHouseholdMembersService(retrofit: Retrofit): HouseholdMembersService =
+        retrofit.create(HouseholdMembersService::class.java)
 }
