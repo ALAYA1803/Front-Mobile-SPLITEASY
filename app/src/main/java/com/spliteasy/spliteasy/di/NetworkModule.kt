@@ -7,6 +7,7 @@ import com.spliteasy.spliteasy.data.remote.api.ExpensesService
 import com.spliteasy.spliteasy.data.remote.api.GroupsService
 import com.spliteasy.spliteasy.data.remote.api.UsersService
 import com.spliteasy.spliteasy.data.remote.api.WebMemberApi
+import com.spliteasy.spliteasy.data.remote.api.AccountService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -76,6 +77,9 @@ object NetworkModule {
             .build()
 
     // === PROVISIONES DE APIS ===
+    @Provides @Singleton
+    fun provideAccountService(retrofit: Retrofit): AccountService =
+        retrofit.create(AccountService::class.java)
 
     @Provides @Singleton
     fun provideWebMemberApi(retrofit: Retrofit): WebMemberApi =
@@ -96,4 +100,5 @@ object NetworkModule {
     @Provides @Singleton
     fun provideExpensesService(retrofit: Retrofit): ExpensesService =
         retrofit.create(ExpensesService::class.java)
+
 }

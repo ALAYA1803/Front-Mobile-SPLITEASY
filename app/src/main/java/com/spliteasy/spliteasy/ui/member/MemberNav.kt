@@ -30,10 +30,11 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.material.icons.rounded.Logout
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
+import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 
 /* ---------------------- Paleta SpliteEasy (oscura) ---------------------- */
 private val BrandPrimary   = Color(0xFF1565C0)
@@ -167,7 +168,7 @@ private fun MemberTopBar(
             // Botón cerrar sesión
             IconButton(onClick = onLogout) {
                 Icon(
-                    imageVector = Icons.Rounded.Logout,
+                    imageVector = Icons.AutoMirrored.Rounded.Logout,
                     contentDescription = "Cerrar sesión",
                     tint = TextPri
                 )
