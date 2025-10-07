@@ -2,16 +2,18 @@ package com.spliteasy.spliteasy.di
 
 import com.spliteasy.spliteasy.BuildConfig
 import com.spliteasy.spliteasy.data.local.TokenDataStore
-import com.spliteasy.spliteasy.data.remote.api.AuthService
-import com.spliteasy.spliteasy.data.remote.api.ExpensesService
-import com.spliteasy.spliteasy.data.remote.api.GroupsService
-import com.spliteasy.spliteasy.data.remote.api.UsersService
-import com.spliteasy.spliteasy.data.remote.api.WebMemberApi
 import com.spliteasy.spliteasy.data.remote.api.AccountService
-import com.spliteasy.spliteasy.data.remote.api.HouseholdsService
-import com.spliteasy.spliteasy.data.remote.api.HouseholdMembersService
+import com.spliteasy.spliteasy.data.remote.api.AuthService
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.ContributionsService
+import com.spliteasy.spliteasy.data.remote.api.ExpensesService
+import com.spliteasy.spliteasy.data.remote.api.GroupsService
+import com.spliteasy.spliteasy.data.remote.api.HouseholdMembersService
+import com.spliteasy.spliteasy.data.remote.api.HouseholdsService
+import com.spliteasy.spliteasy.data.remote.api.MemberContributionsService
+import com.spliteasy.spliteasy.data.remote.api.PaymentReceiptsService
+import com.spliteasy.spliteasy.data.remote.api.UsersService
+import com.spliteasy.spliteasy.data.remote.api.WebMemberApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -52,9 +54,9 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val path = original.url.encodedPath
-                // No añadas Authorization a endpoints de auth
-                val needsAuth = !path.contains("/authentication/", ignoreCase = true)
-                        && !path.contains("/auth/", ignoreCase = true)
+                // Evita Authorization para endpoints de auth
+                val needsAuth = !path.contains("/authentication/", ignoreCase = true) &&
+                        !path.contains("/auth/", ignoreCase = true)
 
                 val token = runBlocking { tokenStore.readToken() }
                 val req = if (needsAuth && !token.isNullOrBlank()) {
@@ -73,13 +75,13 @@ object NetworkModule {
     @Provides @Singleton
     fun provideRetrofit(moshi: Moshi, okHttp: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            // Asegúrate que BuildConfig.BASE_URL termina con "/api/v1/"
-            // y SOLO aparece una vez (para evitar /api/v1/api/v1)
+            // Asegúrate de que BASE_URL termina con "/" (tu valor ya es ".../api/v1/")
             .baseUrl(BuildConfig.BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(okHttp)
             .build()
 
+    // ====== SERVICES ======
     @Provides @Singleton
     fun provideAccountService(retrofit: Retrofit): AccountService =
         retrofit.create(AccountService::class.java)
@@ -103,6 +105,7 @@ object NetworkModule {
     @Provides @Singleton
     fun provideExpensesService(retrofit: Retrofit): ExpensesService =
         retrofit.create(ExpensesService::class.java)
+
     @Provides @Singleton
     fun provideBillsService(retrofit: Retrofit): BillsService =
         retrofit.create(BillsService::class.java)
@@ -110,10 +113,21 @@ object NetworkModule {
     @Provides @Singleton
     fun provideContributionsService(retrofit: Retrofit): ContributionsService =
         retrofit.create(ContributionsService::class.java)
+
     @Provides @Singleton
     fun provideHouseholdsService(retrofit: Retrofit): HouseholdsService =
         retrofit.create(HouseholdsService::class.java)
-    @Provides
+
+    @Provides @Singleton
     fun provideHouseholdMembersService(retrofit: Retrofit): HouseholdMembersService =
         retrofit.create(HouseholdMembersService::class.java)
+
+    // ---- FALTABAN ESTOS DOS (eran los del error de Hilt) ----
+    @Provides @Singleton
+    fun provideMemberContributionsService(retrofit: Retrofit): MemberContributionsService =
+        retrofit.create(MemberContributionsService::class.java)
+
+    @Provides @Singleton
+    fun providePaymentReceiptsService(retrofit: Retrofit): PaymentReceiptsService =
+        retrofit.create(PaymentReceiptsService::class.java)
 }
