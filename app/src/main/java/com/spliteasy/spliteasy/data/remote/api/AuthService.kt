@@ -12,7 +12,6 @@ interface AuthService {
     @POST("authentication/sign-in")
     suspend fun signIn(
         @Body req: LoginRequest,
-        // dejamos el header por compatibilidad, pero puedes pasarlo null
         @Header("X-Integrity-Token") integrityToken: String? = null
     ): SignInResponse
 

@@ -4,7 +4,6 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
 
-    // Miembro
     const val MEM_HOME = "mem_home"
     const val MEM_ROOT = "mem_root"
     const val MEM_EXPENSES = "mem_expenses"
@@ -16,6 +15,5 @@ object Routes {
     const val HOUSEHOLD_MEMBERS = "household_members"
     const val INVITE = "invite"
     const val SETTLE = "settle"
-    // Representante
     const val REP_HOME = "rep_home"
 }

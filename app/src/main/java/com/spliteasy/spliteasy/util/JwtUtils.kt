@@ -9,7 +9,6 @@ object JwtUtils {
         return String(Base64.decode(part, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
     }
 
-    /** Devuelve el payload del JWT como JSONObject o null si falla */
     fun payload(token: String?): JSONObject? {
         return try {
             if (token.isNullOrBlank()) return null
@@ -21,7 +20,6 @@ object JwtUtils {
         }
     }
 
-    /** Intenta extraer un id numérico (id / userId / sub) */
     fun userId(token: String?): Long? {
         return try {
             val p = payload(token) ?: return null
@@ -36,7 +34,6 @@ object JwtUtils {
         }
     }
 
-    /** Intenta extraer un nombre de usuario razonable (username o email->antes de @) */
     fun username(token: String?): String? {
         val p = payload(token) ?: return null
         val byUsername = p.optString("username", "").ifBlank { null }

@@ -20,7 +20,6 @@ data class SignUpRequest(
     val captchaToken: String
 )
 
-/** ¡Esta es la que faltaba y debe existir una sola vez! */
 @JsonClass(generateAdapter = true)
 data class SignInResponse(
     val id: Long,

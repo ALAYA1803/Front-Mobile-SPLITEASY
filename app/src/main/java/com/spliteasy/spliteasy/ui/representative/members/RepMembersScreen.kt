@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
-/* Paleta consistente */
 private val BrandPrimary = Color(0xFF1565C0)
 private val BgMain       = Color(0xFF1A1A1A)
 private val CardBg       = Color(0xFF2D2D2D)
@@ -59,7 +58,6 @@ fun RepMembersScreen(vm: RepMembersViewModel = hiltViewModel()) {
     }
 }
 
-/* ---------- Widgets ---------- */
 
 @Composable
 private fun TopRow(onAddClick: () -> Unit) {
@@ -123,7 +121,6 @@ private fun MembersList(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // avatar inicial
                     val initial = (m.username ?: m.email ?: "U").trim()
                         .ifEmpty { "U" }.first().uppercaseChar().toString()
 

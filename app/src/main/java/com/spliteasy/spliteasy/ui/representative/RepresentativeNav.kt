@@ -55,7 +55,6 @@ import com.spliteasy.spliteasy.ui.representative.bills.RepBillsScreen
 import com.spliteasy.spliteasy.ui.representative.contributions.RepContributionsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 
-/* Paleta */
 private val BrandPrimary   = Color(0xFF1565C0)
 private val BgMain         = Color(0xFF1A1A1A)
 private val BgCard         = Color(0xFF2D2D2D)
@@ -63,7 +62,6 @@ private val Border         = Color(0xFF404040)
 private val TextPri        = Color(0xFFF8F9FA)
 private val TextSec        = Color(0xFFADB5BD)
 
-/* ----- Destinos ----- */
 sealed class RepDest(
     val route: String,
     val label: String,
@@ -81,7 +79,6 @@ private val repTabs = listOf(
     RepDest.Home, RepDest.Members, RepDest.Bills, RepDest.Contributions, RepDest.Settings
 )
 
-/* ===== ViewModel cabecera (username / userId) ===== */
 sealed interface RepHeaderUiState {
     data object Loading : RepHeaderUiState
     data class Ready(val userId: Long, val username: String) : RepHeaderUiState
@@ -111,7 +108,6 @@ class RepHeaderViewModel @Inject constructor(
     }
 }
 
-/* ===== ViewModel logout (limpia DataStore) ===== */
 @HiltViewModel
 class RepLogoutViewModel @Inject constructor(
     private val tokenStore: TokenDataStore
@@ -124,20 +120,15 @@ class RepLogoutViewModel @Inject constructor(
     }
 }
 
-/* ===== Root ===== */
 @Composable
 fun RepresentativeNavRoot(
     modifier: Modifier = Modifier,
-    onLogout: () -> Unit = {},              // <- AppNav debe inyectar navegación a LOGIN
+    onLogout: () -> Unit = {},
 ) {
     val nav = rememberNavController()
-
-    // VM cabecera (username)
     val headerVm: RepHeaderViewModel = hiltViewModel()
     val headerState by headerVm.ui.collectAsState()
     LaunchedEffect(Unit) { headerVm.load() }
-
-    // VM logout (limpieza de DataStore)
     val logoutVm: RepLogoutViewModel = hiltViewModel()
 
     val currentUserName = remember(headerState) {
@@ -155,7 +146,7 @@ fun RepresentativeNavRoot(
                 subtitle = "Panel del Representante",
                 initial = initial,
                 username = currentUserName,
-                onLogout = { logoutVm.logout(onAfter = onLogout) }  // ✅ limpia token y luego navega
+                onLogout = { logoutVm.logout(onAfter = onLogout) }
             )
         },
         bottomBar = { RepBottomBar(tabs = repTabs, nav = nav) }
@@ -194,7 +185,6 @@ fun RepresentativeNavRoot(
     }
 }
 
-/* ===== TopBar ===== */
 @Composable
 private fun RepTopBar(
     title: String,

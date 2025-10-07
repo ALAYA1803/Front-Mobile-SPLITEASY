@@ -32,14 +32,11 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar // o TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 
-/* =================
-   Design tokens
-   ================= */
 private val Brand = Color(0xFF1565C0)
 private val BgMain = Color(0xFF1A1A1A)
 private val CardBg = Color(0xFF1B1E24)
@@ -60,13 +57,11 @@ fun RepContributionsScreen(
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Bottom sheets
     val formSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val reviewSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(Unit) { vm.load() }
 
-    // ---------- Top-level scaffold ----------
     Scaffold(
         containerColor = BgMain,
         topBar = {
@@ -137,7 +132,6 @@ fun RepContributionsScreen(
         }
     }
 
-    // ---------- Bottom Sheet: Formulario ----------
     if (ui.formVisible) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -146,7 +140,6 @@ fun RepContributionsScreen(
             sheetState = formSheetState,
             containerColor = CardBg,
             dragHandle = { SheetHandle() },
-            // nos encargamos con paddings
         ) {
             CreateContributionSheet(
                 ui = ui,
@@ -165,7 +158,6 @@ fun RepContributionsScreen(
         }
     }
 
-    // ---------- Bottom Sheet: Revisar boletas ----------
     if (ui.reviewVisible) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -189,9 +181,6 @@ fun RepContributionsScreen(
     }
 }
 
-/* ===================================
-   LISTA PRINCIPAL (optimizada móvil)
-   =================================== */
 
 @Composable
 private fun ContributionsList(
@@ -335,10 +324,6 @@ private fun ContributionDetailsList(
     )
 }
 
-/* =========================================
-   SHEET: Crear contribución (mobile-first)
-   ========================================= */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateContributionSheet(
@@ -455,7 +440,6 @@ private fun CreateContributionSheet(
                 )
             }
 
-            // Miembros
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -494,7 +478,6 @@ private fun CreateContributionSheet(
             Spacer(Modifier.height(8.dp))
         }
 
-        // Acciones pegadas abajo
         Row(
             Modifier
                 .fillMaxWidth()
@@ -514,9 +497,6 @@ private fun CreateContributionSheet(
     }
 }
 
-/* ============================================
-   SHEET: Revisar boletas (mobile-first)
-   ============================================ */
 @Composable
 private fun ReviewReceiptsSheet(
     ui: RepContribUi,
@@ -618,7 +598,6 @@ private fun ReviewReceiptsSheet(
     }
 }
 
-/* ======= UI helpers ======= */
 
 @Composable
 private fun SheetHandle() {
@@ -651,7 +630,6 @@ private fun SheetHandle() {
     }
 }
 
-/* --- Utils --- */
 private fun formatPen(value: Double): String =
     NumberFormat.getCurrencyInstance(Locale("es", "PE")).apply {
         currency = Currency.getInstance("PEN")
@@ -659,7 +637,6 @@ private fun formatPen(value: Double): String =
         minimumFractionDigits = 2
     }.format(value)
 
-/* ---- Descarga de boletas con DownloadManager ---- */
 private fun Context.downloadReceipt(url: String?, filename: String?) {
     if (url.isNullOrBlank()) return
     val safeName = (filename?.ifBlank { null } ?: "receipt").replace(Regex("[^a-zA-Z0-9._-]"), "_")

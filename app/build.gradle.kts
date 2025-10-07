@@ -17,7 +17,6 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Constantes de BuildConfig
         buildConfigField("String", "BASE_URL", "\"https://back-spliteasy.onrender.com/api/v1/\"")
         buildConfigField("String", "RECAPTCHA_SITE_KEY", "\"6Lfqx9wrAAAAAITS3xCtu2B1CXbyM03jc1jAnVTe\"")
         buildConfigField("String", "RECAPTCHA_SECRET_KEY", "\"6LdNpN4rAAAAADl5kXk7WBtnR4I7qXYmKtMWV6OL\"")
@@ -29,7 +28,6 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "RECAPTCHA_SITE_KEY", "\"6LddQN8rAAAAAPuC7XmDDxbaC7di1ER8T1E5Sy31\"")
-            // Si quisieras, puedes redefinir BASE_URL aquí para debug. No es necesario.
         }
         release {
             isMinifyEnabled = false
@@ -58,7 +56,6 @@ android {
 }
 
 dependencies {
-    // Compose (BOM)
     implementation(platform(libs.androidx.compose.bom))
 
     implementation(libs.androidx.core.ktx)
@@ -70,10 +67,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    // Icons extended (material 1.x)
     implementation("androidx.compose.material:material-icons-extended")
     implementation ("androidx.compose.ui:ui-text")
-    // Pull-to-refresh oficial (material 1.x)
     implementation("androidx.compose.material:material:1.7.5")
 
     debugImplementation(libs.androidx.compose.ui.tooling)
@@ -81,15 +76,12 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
-    // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.8.1")
 
-    // Hilt
     implementation("com.google.dagger:hilt-android:2.51")
     kapt("com.google.dagger:hilt-compiler:2.51")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Retrofit + Moshi + OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.moshi:moshi:1.15.1")
@@ -98,23 +90,17 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // Play Integrity
     implementation("com.google.android.play:integrity:1.4.0")
 
-    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    // Coil
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // reCAPTCHA Android (si lo usas)
     implementation("com.google.android.recaptcha:recaptcha:18.8.0")
 
-    // Desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     testImplementation(libs.junit)

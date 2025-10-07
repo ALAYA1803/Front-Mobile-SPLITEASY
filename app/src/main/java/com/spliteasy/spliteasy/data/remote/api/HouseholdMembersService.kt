@@ -5,11 +5,9 @@ import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
 import retrofit2.http.*
 
 interface HouseholdMembersService {
-    // NUEVO: endpoint explícito por household
     @GET("households/{id}/members")
     suspend fun listByHousehold(@Path("id") householdId: Long): List<HouseholdMemberDto>
 
-    // EXISTENTE: puede que el backend ignore este query y devuelva todo
     @GET("household-members")
     suspend fun list(@Query("householdId") householdId: Long? = null): List<HouseholdMemberDto>
 

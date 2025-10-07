@@ -12,7 +12,6 @@ import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
 import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
 interface WebMemberApi {
 
-    // Households
     @GET("households")
     suspend fun listHouseholds(): List<HouseholdDto>
 
@@ -22,25 +21,21 @@ interface WebMemberApi {
     @GET("households/{id}/members")
     suspend fun listHouseholdMembers(@Path("id") id: Long): List<Any>
 
-    // Users
     @GET("users/{id}")
     suspend fun getUser(@Path("id") id: Long): RawUserDto
 
-    // Member Contributions
     @GET("member-contributions")
     suspend fun listMemberContributions(
         @Query("memberId") memberId: Long,
         @Query("householdId") householdId: Long? = null
     ): List<MemberContributionDto>
 
-    // Contributions & Bills
     @GET("contributions/{id}")
     suspend fun getContribution(@Path("id") id: Long): ContributionDto
 
     @GET("bills/{id}")
     suspend fun getBill(@Path("id") id: Long): BillDto
 
-    // Receipts
     @GET("member-contributions/{mcId}/receipts")
     suspend fun listReceipts(@Path("mcId") memberContributionId: Long): List<PaymentReceiptDto>
 
@@ -60,7 +55,6 @@ interface WebMemberApi {
         @Query("notes") notes: String? = null
     ): PaymentReceiptDto
 
-    // Settings
     @GET("settings")
     suspend fun listSettings(@Query("user_id") userId: Long): List<Map<String, Any?>>
 

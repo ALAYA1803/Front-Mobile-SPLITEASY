@@ -21,11 +21,6 @@ class RegisterViewModel @Inject constructor(
         private set
     var error: String? = null
         private set
-
-    /**
-     * onDone(true)  -> registro OK
-     * onDone(false) -> fallo (revisa 'error')
-     */
     fun register(
         username: String,
         email: String,
@@ -40,11 +35,9 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val ctx = getApplication<Application>().applicationContext
-
-                // 1) reCAPTCHA para SIGNUP
                 val captchaToken = RecaptchaHelper.getToken(
                     context = ctx,
-                    action = RecaptchaAction.SIGNUP // usa DEFAULT si no validas acción en backend
+                    action = RecaptchaAction.SIGNUP
                 )
 
                 if (captchaToken.isNullOrBlank()) {
@@ -54,7 +47,6 @@ class RegisterViewModel @Inject constructor(
                     return@launch
                 }
 
-                // 2) Sign-up
                 val req = SignUpRequest(
                     username = username,
                     email = email,

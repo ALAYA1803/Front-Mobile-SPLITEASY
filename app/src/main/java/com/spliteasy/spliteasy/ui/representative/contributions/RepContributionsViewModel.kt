@@ -25,9 +25,9 @@ data class ContributionDetailUi(
     val memberId: Long?,
     val userId: Long?,
     val displayName: String,
-    val displayRole: String,   // REPRESENTANTE | MIEMBRO
+    val displayRole: String,
     val monto: Double,
-    val status: String,        // PENDIENTE | EN_REVISION | PAGADO | RECHAZADO
+    val status: String,
     val pagadoEn: String?,
     val pendingReceiptsCount: Int
 )
@@ -59,8 +59,6 @@ data class RepContribUi(
     val householdName: String = "",
     val currency: String = "PEN",
     val contributions: List<ContributionUi> = emptyList(),
-
-    // Form
     val formVisible: Boolean = false,
     val editingId: Long? = null,
     val formBillId: Long? = null,
@@ -70,8 +68,6 @@ data class RepContribUi(
     val formSelectedMembers: Set<Long> = emptySet(),
     val allBills: List<BillDto> = emptyList(),
     val allMembers: List<MemberLite> = emptyList(),
-
-    // Review receipts dialog
     val reviewVisible: Boolean = false,
     val reviewLoading: Boolean = false,
     val reviewForDetail: ContributionDetailUi? = null,
@@ -103,17 +99,12 @@ class RepContributionsViewModel @Inject constructor(
                     return@launch
                 }
             val hhId = myHouse.id
-
-            // 1) fetch
             val allBills = runCatching { billsApi.listAll() }.getOrDefault(emptyList())
             val allUsers = runCatching { usersApi.list() }.getOrDefault(emptyList())
             val allContribs = runCatching { contribApi.listAll() }.getOrDefault(emptyList())
             val allMcs = runCatching { mcApi.listAll() }.getOrDefault(emptyList())
-
             val billsById: Map<Long, BillDto> = allBills.associateBy { it.id }
             val usersById = allUsers.associateBy { it.id }
-
-            // 2) miembros del hogar
             val memberLinks = runCatching { hhMembersApi.listByHousehold(hhId) }
                 .getOrElse {
                     runCatching { hhMembersApi.list() }.getOrDefault(emptyList())
@@ -131,15 +122,9 @@ class RepContributionsViewModel @Inject constructor(
                 )
             }
             val memberByMemberId = membersLite.associateBy { it.memberId }
-
-            // 3) contribuciones del hogar
             val mine = allContribs.filter { it.householdId == hhId }
-
-            // 4) agrupar mcs por contributionId
             val mcsByContrib: Map<Long, List<MemberContributionDto>> =
                 allMcs.groupBy { it.contributionId }
-
-            // 5) Construir UI
             val contribUi: List<ContributionUi> = mine.map { c ->
                 val cid = c.id
                 val mcs = mcsByContrib[cid] ?: emptyList()
@@ -177,8 +162,6 @@ class RepContributionsViewModel @Inject constructor(
                     details = details
                 )
             }.sortedBy { it.fechaLimite ?: "" }
-
-            // 6) contar boletas PENDING por cada detail
             val withCounts = contribUi.map { cu ->
                 val updatedDetails = cu.details.map { d ->
                     val receipts = runCatching { receiptsApi.list(d.id) }.getOrDefault(emptyList())
@@ -207,10 +190,6 @@ class RepContributionsViewModel @Inject constructor(
             contributions = _ui.value.contributions.map { if (it.id == id) it.copy(expanded = !it.expanded) else it }
         )
     }
-
-    /* =========================
-       Formulario nueva contribución
-       ========================= */
     fun openForm() {
         _ui.value = _ui.value.copy(
             formVisible = true,
@@ -264,10 +243,6 @@ class RepContributionsViewModel @Inject constructor(
             _ui.value = _ui.value.copy(error = t.message ?: "No se pudo crear la contribución.")
         }
     }
-
-    /* =========================
-       Receipts Review (dialog)
-       ========================= */
     fun openReview(detail: ContributionDetailUi) {
         _ui.value = _ui.value.copy(
             reviewVisible = true,
@@ -292,7 +267,6 @@ class RepContributionsViewModel @Inject constructor(
 
     fun approveReceiptAndRefresh(receiptId: Long) = viewModelScope.launch {
         runCatching { receiptsApi.approve(receiptId) }.onSuccess {
-            // marca "PAGADO" al detalle y reduce pendientes
             val cur = _ui.value
             val detail = cur.reviewForDetail
             if (detail != null) {
@@ -302,7 +276,6 @@ class RepContributionsViewModel @Inject constructor(
                 )
                 _ui.value = cur.copy(reviewForDetail = updatedDetail)
             }
-            // refresca lista de boletas del detalle
             detail?.let { openReview(it) }
             load()
         }
@@ -310,7 +283,6 @@ class RepContributionsViewModel @Inject constructor(
 
     fun rejectReceiptAndRefresh(receiptId: Long, notes: String?) = viewModelScope.launch {
         runCatching { receiptsApi.reject(receiptId, notes) }.onSuccess {
-            // si estaba en revisión, reduce pendientes
             val cur = _ui.value
             val detail = cur.reviewForDetail
             if (detail != null && detail.status == "EN_REVISION") {
@@ -348,12 +320,6 @@ class RepContributionsViewModel @Inject constructor(
         else -> "PENDIENTE"
     }
 }
-
-/* ================
-   Helper mínimo
-   ================ */
-
-// HouseholdMembers (del servicio) – para el fallback .list()
 private fun Any.normalizedHouseholdId(): Long? = try {
     val k = this::class.members.firstOrNull { it.name in setOf("householdId", "household_id") }
     (k?.call(this) as? Long)

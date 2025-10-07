@@ -132,7 +132,6 @@ fun LoginScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // === Usuario ===
                         Text(
                             "Usuario",
                             color = Color.White,
@@ -144,9 +143,8 @@ fun LoginScreen(
                             onValueChange = { username = it },
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = TextMuted) },
-                            // ❌ Quita .height(56.dp)
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodyLarge, // para que ambos se vean iguales
+                            textStyle = MaterialTheme.typography.bodyLarge,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
@@ -164,7 +162,6 @@ fun LoginScreen(
 
                         Spacer(Modifier.height(14.dp))
 
-// === Contraseña ===
                         Text(
                             "Contraseña",
                             color = Color.White,
@@ -176,8 +173,6 @@ fun LoginScreen(
                             onValueChange = { password = it },
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = TextMuted) },
-
-                            // 👁️ Mostrar/ocultar contraseña
                             trailingIcon = {
                                 IconButton(onClick = { showPassword = !showPassword }) {
                                     val icon = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility
@@ -186,8 +181,6 @@ fun LoginScreen(
                                 }
                             },
                             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-
-                            // ❌ Quita .height(56.dp) para evitar recortes
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyLarge,
                             isError = (vm.error == "Usuario o contraseña incorrectos."),
@@ -215,7 +208,6 @@ fun LoginScreen(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    // mismo click del botón
                                     vm.clearError()
                                     scope.launch {
                                         vm.login(username, password)?.let(onSuccess)

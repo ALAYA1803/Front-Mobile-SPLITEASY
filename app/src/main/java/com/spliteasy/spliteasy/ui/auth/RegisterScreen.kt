@@ -52,8 +52,6 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var repeatPassword by remember { mutableStateOf("") }
     var income by remember { mutableStateOf("") }
-
-    // Dropdown rol (sin APIs experimentales)
     var expanded by remember { mutableStateOf(false) }
     var role by remember { mutableStateOf<String?>(null) }
     var fieldSize by remember { mutableStateOf(Size.Zero) }

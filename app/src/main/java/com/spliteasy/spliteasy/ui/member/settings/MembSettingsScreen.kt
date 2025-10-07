@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.PaddingValues
 
-/* Paleta SpliteEasy (oscuro) */
 private val BrandPrimary = Color(0xFF1565C0)
 private val DangerColor  = Color(0xFFD32F2F)
 private val BgMain       = Color(0xFF1A1A1A)
@@ -62,8 +61,8 @@ fun MembSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BgMain)
-                .padding(padding)      // padding que da el Scaffold padre
-                .imePadding(),         // sube el contenido cuando aparece el teclado
+                .padding(padding)
+                .imePadding(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -108,7 +107,6 @@ fun MembSettingsScreen(
                 }
             }
 
-            // --- Seguridad ---
             item {
                 SettingsCard {
                     SectionHeader(icon = "🔒", title = "Seguridad", subtitle = "Cambia tu contraseña")
@@ -164,7 +162,6 @@ fun MembSettingsScreen(
                 }
             }
 
-            // --- Zona de peligro ---
             item {
                 SettingsCard(borderColor = DangerColor) {
                     SectionHeader(icon = "⚠️", title = "Zona de peligro", subtitle = "Acciones irreversibles")
@@ -178,17 +175,13 @@ fun MembSettingsScreen(
                 }
             }
 
-            // (Opcional) Cerrar sesión
             item {
                 OutlinedButton(
                     onClick = onLogout,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPri),
-                    // evita el warning deprecado
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
                 ) { Text("Cerrar sesión") }
             }
-
-            // espacio extra para que nada quede detrás del bottom bar
             item { Spacer(Modifier.height(100.dp)) }
         }
 

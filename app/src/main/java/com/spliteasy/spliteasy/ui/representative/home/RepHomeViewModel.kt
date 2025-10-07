@@ -42,14 +42,10 @@ class RepHomeViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _ui.value = RepHomeUi(loading = true)
-
-            // 1) ID del usuario actual
             val meId = repo.meId().getOrElse {
                 _ui.value = RepHomeUi(loading = false, error = it.message ?: "No se pudo obtener el usuario.")
                 return@launch
             }
-
-            // 2) Hogares y el mío como representante
             val households = repo.listAllHouseholds().getOrElse {
                 _ui.value = RepHomeUi(loading = false, error = it.message ?: "No se pudo listar hogares.")
                 return@launch
@@ -62,23 +58,16 @@ class RepHomeViewModel @Inject constructor(
             }
 
             try {
-                // 3) Llamadas en paralelo
-                val membersDef = async { groups.listAllHouseholdMembers() }   // GET /household-members
-                val billsDef   = async { billsService.listAll() }            // GET /bills
-                val contribDef = async { contributionsService.listAll() }    // GET /contributions
-
+                val membersDef = async { groups.listAllHouseholdMembers() }
+                val billsDef   = async { billsService.listAll() }
+                val contribDef = async { contributionsService.listAll() }
                 val allMembers: List<MemberDto>        = membersDef.await()
                 val allBills: List<BillDto>            = billsDef.await()
                 val allContribs: List<ContributionDto> = contribDef.await()
-
                 val hhId = mine.id
-
-                // 4) Filtros estrictos por hogar
                 val members        = allMembers.filter { it.normalizedHouseholdId() == hhId }
                 val billsCount     = allBills.count   { it.normalizedHouseholdId() == hhId }
                 val contributions  = allContribs.filter { it.householdId == hhId }
-
-                // 5) Moneda base
                 val currency = mine.currency ?: "PEN"
 
                 _ui.value = RepHomeUi(

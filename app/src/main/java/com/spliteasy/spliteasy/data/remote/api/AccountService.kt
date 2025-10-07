@@ -12,7 +12,7 @@ data class ChangePasswordRequest(val currentPassword: String, val newPassword: S
 interface AccountService {
 
     @GET("account/me")
-    suspend fun me(): ProfileDto   // <-- Importante: ProfileDto
+    suspend fun me(): ProfileDto
 
     @PUT("account/profile")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): ResponseBody

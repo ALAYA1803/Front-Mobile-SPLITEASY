@@ -25,5 +25,5 @@ data class CreateBillRequest(
     val description: String,
     val monto: Double,
     val createdBy: Long,
-    val fecha: String // formato yyyy-MM-dd (igual que la web)
+    val fecha: String
 )

@@ -58,7 +58,6 @@ fun RepCreateHouseholdScreen(
             Text("Nuevo hogar", color = TextPri, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
             Text("Completa los datos para crear tu hogar.", color = TextSec)
 
-            // Nombre
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -79,7 +78,6 @@ fun RepCreateHouseholdScreen(
                 )
             )
 
-            // Descripción
             OutlinedTextField(
                 value = desc,
                 onValueChange = { desc = it },
@@ -101,7 +99,6 @@ fun RepCreateHouseholdScreen(
                 )
             )
 
-            // Moneda (simple select con 3 opciones)
             ExposedDropdownMenuBox(expanded = vm.menuExpanded, onExpandedChange = { vm.toggleMenu() }) {
                 OutlinedTextField(
                     value = currency,

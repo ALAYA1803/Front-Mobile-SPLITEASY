@@ -26,21 +26,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
 import java.util.*
 
-/** === Paleta SplitEasy (oscura) === */
-private val BrandPrimary   = Color(0xFF1565C0) // azul
-private val BrandSecondary = Color(0xFFFF6F00) // naranja
-private val SuccessColor   = Color(0xFF2E7D32) // verde
-private val InfoColor      = Color(0xFF4F46E5) // índigo
 
-private val BgMain         = Color(0xFF1A1A1A) // #1a1a1a
-private val CardBg         = Color(0xFF2D2D2D) // #2d2d2d
-private val BorderColor    = Color(0xFF404040) // #404040
-private val TextPrimary    = Color(0xFFF8F9FA) // #f8f9fa
-private val TextSecondary  = Color(0xFFADB5BD) // #adb5bd
+private val BrandPrimary   = Color(0xFF1565C0)
+private val BrandSecondary = Color(0xFFFF6F00)
+private val SuccessColor   = Color(0xFF2E7D32)
+private val InfoColor      = Color(0xFF4F46E5)
+
+private val BgMain         = Color(0xFF1A1A1A)
+private val CardBg         = Color(0xFF2D2D2D)
+private val BorderColor    = Color(0xFF404040)
+private val TextPrimary    = Color(0xFFF8F9FA)
+private val TextSecondary  = Color(0xFFADB5BD)
 
 @Composable
 fun MemberHomeScreen(
-    onAddExpense: () -> Unit = {},   // (no se muestra al miembro)
+    onAddExpense: () -> Unit = {},
     onOpenExpense: (Long) -> Unit = {},
     vm: MemberHomeViewModel = hiltViewModel()
 ) {
@@ -66,7 +66,6 @@ fun MemberHomeScreen(
     }
 }
 
-/* ---------------------------------- CONTENT ---------------------------------- */
 
 @Composable
 private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
@@ -81,7 +80,6 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
             .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Hero oscuro con degradado y saludo correcto
         item {
             HeroHeader(
                 userName = welcomeName,
@@ -89,8 +87,6 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                 householdDescription = s.householdDescription
             )
         }
-
-        // KPIs con tarjetas oscuras y bordes sutiles
         item {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -127,8 +123,6 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                 }
             }
         }
-
-        // Lista de miembros (oscura)
         if (s.members.isNotEmpty()) {
             item {
                 SectionTitle(
@@ -151,7 +145,6 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
     }
 }
 
-/* ---------------------------------- WIDGETS ---------------------------------- */
 
 @Composable
 private fun HeroHeader(
@@ -159,7 +152,6 @@ private fun HeroHeader(
     householdName: String,
     householdDescription: String
 ) {
-    // Degradado oscuro azul→índigo
     val gradient = Brush.verticalGradient(
         colors = listOf(BrandPrimary.copy(alpha = 0.18f), InfoColor.copy(alpha = 0.10f))
     )
@@ -412,7 +404,6 @@ private fun EmptyBox(message: String) {
     }
 }
 
-/* ---------------------------------- UTILS ---------------------------------- */
 
 private fun currencyFormatter(code: String): NumberFormat {
     return try {
@@ -436,20 +427,14 @@ private fun firstRoleLabel(roles: List<String>): String {
     return if (r.contains("REPRESENTANTE")) "REPRESENTANTE" else "MIEMBRO"
 }
 
-/**
- * Resuelve el nombre real del miembro SIN tocar login.
- * Busca campos comunes en tu UiState.Ready (si existen) y, si hay currentUserId, lo cruza con la lista de members.
- */
 private fun resolveWelcomeName(s: MemberHomeUiState.Ready): String {
     fun <T> tryProp(name: String): T? = try {
         @Suppress("UNCHECKED_CAST")
         s::class.members.firstOrNull { it.name == name }?.call(s) as? T
     } catch (_: Throwable) { null }
 
-    // 1) currentUserName directo
     tryProp<String>("currentUserName")?.let { if (it.isNotBlank()) return it }
 
-    // 2) currentUser.username (si tu VM expone el objeto)
     tryProp<Any>("currentUser")?.let { cu ->
         val username = runCatching {
             cu::class.members.firstOrNull { it.name == "username" }?.call(cu) as? String
@@ -461,17 +446,14 @@ private fun resolveWelcomeName(s: MemberHomeUiState.Ready): String {
         if (!email.isNullOrBlank()) return email.substringBefore("@")
     }
 
-    // 3) Si viene currentUserId, buscarlo en la lista de miembros para extraer su username
     val myId = tryProp<Long>("currentUserId") ?: tryProp<Int>("currentUserId")?.toLong()
     if (myId != null) {
         s.members.firstOrNull { it.id?.toLong() == myId }?.username?.let { if (it.isNotBlank()) return it }
     }
 
-    // 4) Otros alias frecuentes que suelen traer del session/local
     tryProp<String>("sessionUsername")?.let { if (it.isNotBlank()) return it }
     tryProp<String>("username")?.let { if (it.isNotBlank()) return it }
 
-    // 5) Fallback: si hay miembros, intenta el que tenga correo que contenga el nombre de usuario actual
     s.members.firstOrNull()?.username?.takeIf { it.isNotBlank() }?.let { return it }
 
     return "Usuario"

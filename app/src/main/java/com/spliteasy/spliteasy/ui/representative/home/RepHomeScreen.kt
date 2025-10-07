@@ -28,11 +28,10 @@ import java.util.Currency
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 
-/* === Paleta coherente con la app (oscuro) === */
-private val BrandPrimary   = Color(0xFF1565C0) // azul
-private val BrandSecondary = Color(0xFFFF6F00) // naranja
-private val SuccessColor   = Color(0xFF2E7D32) // verde
-private val InfoColor      = Color(0xFF4F46E5) // índigo
+private val BrandPrimary   = Color(0xFF1565C0)
+private val BrandSecondary = Color(0xFFFF6F00)
+private val SuccessColor   = Color(0xFF2E7D32)
+private val InfoColor      = Color(0xFF4F46E5)
 
 private val BgMain        = Color(0xFF1A1A1A)
 private val CardBg        = Color(0xFF2D2D2D)
@@ -63,7 +62,6 @@ fun RepHomeScreen(
     }
 }
 
-/* ----------------------------- ONBOARDING ----------------------------- */
 
 @Composable
 private fun OnboardingCard(onCreate: () -> Unit) {
@@ -109,7 +107,6 @@ private fun OnboardingCard(onCreate: () -> Unit) {
     }
 }
 
-/* ------------------------------ DASHBOARD ----------------------------- */
 
 @Composable
 private fun Dashboard(ui: RepHomeUi) {
@@ -163,7 +160,6 @@ private fun Dashboard(ui: RepHomeUi) {
     }
 }
 
-/* ------------------------------ WIDGETS ------------------------------- */
 
 @Composable
 private fun Hero(
@@ -358,7 +354,6 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
     }
 }
 
-/* ------------------------------ UTILS --------------------------------- */
 
 private fun currencyFormatter(code: String): NumberFormat =
     try {

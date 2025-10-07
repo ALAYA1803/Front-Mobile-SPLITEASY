@@ -86,7 +86,7 @@ class MembSettingsViewModel @Inject constructor(
             val ok = repo.deleteAccount().isSuccess
             _ui.value = _ui.value.copy(isLoading = false)
             if (ok) {
-                tokenStore.clear() // limpia token/rol/username guardados
+                tokenStore.clear()
                 onDeleted()
             } else onError("No se pudo eliminar la cuenta.")
         }

@@ -46,19 +46,13 @@ class RepMembersViewModel @Inject constructor(
                     return@launch
                 }
                 val hhId = myHousehold.id
-
-                // 1) PRIMERO: intentamos la ruta fuerte /households/{id}/members
                 val linksRaw = runCatching { membersApi.listByHousehold(hhId) }
                     .getOrElse {
-                        // 2) SI FALLA: usamos /household-members?householdId=...
                         runCatching { membersApi.list(householdId = hhId) }
                             .getOrElse {
-                                // 3) ÚLTIMO RECURSO: /household-members y filtramos en cliente
                                 membersApi.list().filter { it.normalizedHouseholdId() == hhId }
                             }
                     }
-
-                // (por si el backend igual regresó todo, filtramos otra vez en cliente)
                 val links = linksRaw.filter { it.normalizedHouseholdId() == hhId }
 
                 val users: List<RawUserDto> =
@@ -96,7 +90,6 @@ class RepMembersViewModel @Inject constructor(
                     return@launch
                 }
 
-                // evitar duplicados
                 if (_ui.value.members.any { it.id == user.id }) {
                     _ui.value = _ui.value.copy(saving = false, error = "El usuario ya es miembro.")
                     return@launch

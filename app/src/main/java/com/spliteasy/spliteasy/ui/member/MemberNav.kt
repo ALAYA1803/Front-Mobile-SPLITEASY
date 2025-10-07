@@ -36,7 +36,6 @@ import com.spliteasy.spliteasy.ui.member.contribs.MembContribsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
 
-// ---------- Paleta ----------
 private val BrandPrimary = Color(0xFF1565C0)
 private val BgMain       = Color(0xFF1A1A1A)
 private val BgCard       = Color(0xFF2D2D2D)
@@ -44,7 +43,6 @@ private val Border       = Color(0xFF404040)
 private val TextPri      = Color(0xFFF8F9FA)
 private val TextSec      = Color(0xFFADB5BD)
 
-// ---------- Destinos ----------
 sealed class MemberDest(
     val route: String,
     val label: String,
@@ -59,7 +57,6 @@ private val memberTabs = listOf(
     MemberDest.Home, MemberDest.Contributions, MemberDest.Status, MemberDest.Settings
 )
 
-// ---------- Root ----------
 @Composable
 fun MemberNavRoot(
     modifier: Modifier = Modifier,
@@ -67,7 +64,6 @@ fun MemberNavRoot(
 ) {
     val nav = rememberNavController()
 
-    // Home VM para saludar y (opcionalmente) sacar el userId
     val homeVm: MemberHomeViewModel = hiltViewModel()
     val homeState by homeVm.uiState.collectAsState()
     LaunchedEffect(Unit) { homeVm.load() }
@@ -77,13 +73,11 @@ fun MemberNavRoot(
     }
     val initial = currentUserName.trim().ifBlank { "U" }.first().uppercaseChar().toString()
 
-    // Si tu estado Ready expone el ID, úsalo:
     val currentUserId: Long? = (homeState as? MemberHomeUiState.Ready)?.currentUserId
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = BgMain,
-        // Respeta safe areas (status bar / gestos)
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             MemberTopBar(
@@ -108,7 +102,6 @@ fun MemberNavRoot(
                 modifier = Modifier.fillMaxSize()
             ) {
                 composable(MemberDest.Home.route) {
-                    // Implementación real de tu pantalla de inicio
                     MemberHomeScreen(
                         onAddExpense = { /* TODO */ },
                         onOpenExpense = { /* TODO */ }
@@ -117,10 +110,8 @@ fun MemberNavRoot(
 
                 composable(MemberDest.Contributions.route) {
                     if (currentUserId != null && currentUserId > 0) {
-                        // Pantalla real de contribuciones (con upload de boleta)
                         MembContribsScreen(currentUserId = currentUserId)
                     } else {
-                        // Fallback mientras llega el ID
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Cargando usuario…", color = TextSec)
                         }
@@ -139,7 +130,6 @@ fun MemberNavRoot(
     }
 }
 
-// ---------- TopBar ----------
 @Composable
 private fun MemberTopBar(
     title: String,
@@ -151,7 +141,7 @@ private fun MemberTopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.statusBars) // respeta notch/status bar
+            .windowInsetsPadding(WindowInsets.statusBars)
             .background(BgMain)
     ) {
         Row(
@@ -201,7 +191,6 @@ private fun MemberTopBar(
     }
 }
 
-// ---------- BottomBar ----------
 @Composable
 private fun MemberBottomBar(
     tabs: List<MemberDest>,

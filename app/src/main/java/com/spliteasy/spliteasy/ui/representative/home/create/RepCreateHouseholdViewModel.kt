@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RepCreateHouseholdViewModel @Inject constructor(
     private val households: HouseholdsService,
-    private val accountRepo: AccountRepository                     // <-- NUEVO
+    private val accountRepo: AccountRepository
 ) : ViewModel()  {
 
     private val _loading = MutableStateFlow(false)
@@ -33,7 +33,6 @@ class RepCreateHouseholdViewModel @Inject constructor(
             _error.value = null
             _loading.value = true
             try {
-                // 1) obtener el id del usuario actual
                 val me = accountRepo.me().getOrNull()
                 val repId = me?.id ?: 0L
                 if (repId <= 0L) {
@@ -41,16 +40,13 @@ class RepCreateHouseholdViewModel @Inject constructor(
                     _loading.value = false
                     return@launch
                 }
-
-                // 2) construir el request CON representanteId
                 val req = CreateHouseholdRequest(
                     name = name,
                     description = description,
                     currency = currency,
-                    representanteId = repId                    // <-- CLAVE
+                    representanteId = repId
                 )
 
-                // 3) crear en backend
                 val created = households.create(req)
                 if (created.id != null && created.id > 0) {
                     onSuccess()

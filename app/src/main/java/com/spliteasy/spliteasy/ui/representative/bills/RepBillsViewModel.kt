@@ -32,7 +32,6 @@ data class RepBillsUi(
     val householdName: String = "",
     val currency: String = "PEN",
     val bills: List<BillUi> = emptyList(),
-    // Dialog/Form
     val formVisible: Boolean = false,
     val editingId: Long? = null,
     val formDescription: String = "",
@@ -44,7 +43,7 @@ data class RepBillsUi(
 class RepBillsViewModel @Inject constructor(
     private val repo: RepresentativeRepository,
     private val billsApi: BillsService,
-    private val usersApi: UsersService        // <- AÑADIDO para resolver createdByName
+    private val usersApi: UsersService
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(RepBillsUi())
@@ -54,7 +53,6 @@ class RepBillsViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.value = _ui.value.copy(loading = true, error = null)
             try {
-                // 1) identificar hogar del representante actual
                 val meId = repo.meId().getOrThrow()
                 val households = repo.listAllHouseholds().getOrThrow()
                 val myHouse = households.firstOrNull { it.representanteId == meId }
@@ -69,15 +67,10 @@ class RepBillsViewModel @Inject constructor(
                 }
 
                 val hhId = myHouse.id
-
-                // 2) traer todas las bills y FILTRAR por householdId del hogar del representante
                 val billsAll = billsApi.listAll()
                 val billsMine = billsAll.filter { it.normalizedHouseholdId() == hhId }
-
-                // 3) mapear a UI
                 val billsUi = billsMine.map { it.toUi() }
 
-                // 4) enriquecer con nombre del creador (opcional si backend lo trae)
                 val users = runCatching { usersApi.list() }.getOrDefault(emptyList())
                 val byId = users.associateBy { it.id }
                 val finalBills = billsUi.map { b ->
@@ -190,13 +183,12 @@ class RepBillsViewModel @Inject constructor(
     }
 }
 
-/* -------- Helpers -------- */
 private fun BillDto.toUi(): BillUi = BillUi(
     id = this.id,
     householdId = this.normalizedHouseholdId(),
     description = this.description,
-    monto = this.amount,   // en tu DTO lo llamaste "amount"
-    fecha = this.date,     // en tu DTO lo llamaste "date"
+    monto = this.amount,
+    fecha = this.date,
     createdBy = try {
         val member = this::class.members.firstOrNull { it.name == "createdBy" }
         (member?.call(this) as? Long)

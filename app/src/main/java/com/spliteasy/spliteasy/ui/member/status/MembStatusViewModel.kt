@@ -22,8 +22,8 @@ data class StatusRowUi(
     val strategy: String?,
     val fechaLimite: String?,
     val monto: Double,
-    val statusUi: String,          // PENDIENTE | EN_REVISION | PAGADO
-    val pagadoEn: String?          // fecha de pago si aplica
+    val statusUi: String,
+    val pagadoEn: String?
 )
 
 sealed interface StatusUiState {
@@ -98,31 +98,27 @@ class MembStatusViewModel @Inject constructor(
                 }
             }.map { it.await() }
 
-            // Igual que tu web: solo mostramos PAGADOS
             _ui.value = StatusUiState.Ready(rows.filter { it.statusUi == "PAGADO" })
         }
     }
 
     private fun round2(x: Double): Double = round(x * 100.0) / 100.0
 
-    /** Lee el monto de MemberContribution sin romper si el campo se llama 'monto' o 'amount' */
     private fun getAmount(mc: MemberContributionDto): Double {
         anyDouble(mc, "monto", "amount")?.let { return it }
         return 0.0
     }
 
-    /* -------------------- helpers genéricos (Map o reflexión) -------------------- */
 
     private fun anyString(obj: Any?, vararg keys: String): String? {
         if (obj == null) return null
-        // Map
         if (obj is Map<*, *>) {
             for (k in keys) {
                 val v = obj[k]
                 if (v is String && v.isNotBlank()) return v
             }
         }
-        // Reflexión
+
         for (k in keys) {
             try {
                 val f = obj.javaClass.getDeclaredField(k)

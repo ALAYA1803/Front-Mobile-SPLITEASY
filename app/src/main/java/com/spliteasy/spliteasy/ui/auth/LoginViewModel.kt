@@ -44,8 +44,6 @@ class LoginViewModel @Inject constructor(
         return try {
             val ctx = getApplication<Application>().applicationContext
             delay(500)
-
-            // 1) reCAPTCHA
             val captchaToken = RecaptchaHelper.getToken(
                 context = ctx,
                 action = RecaptchaAction.LOGIN

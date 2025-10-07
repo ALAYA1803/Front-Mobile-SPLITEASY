@@ -29,7 +29,6 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
-/* ===== Paleta/estilo dark ===== */
 private val BrandPrimary = Color(0xFF1565C0)
 private val BrandPrimarySoft = Color(0x331565C0)
 private val BgMain = Color(0xFF1A1A1A)
@@ -107,7 +106,6 @@ fun RepBillsScreen(
     }
 }
 
-/* ====== UI Components ====== */
 
 @Composable
 private fun TopHeader(
@@ -139,7 +137,6 @@ private fun TopHeader(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            // Para máxima compatibilidad quitamos el parámetro border
             AssistChip(
                 onClick = {},
                 label = {
@@ -270,7 +267,6 @@ private fun BillRowCard(
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Spacer(Modifier.height(2.dp))
-                // Para máxima compatibilidad quitamos el parámetro border
                 AssistChip(
                     onClick = {},
                     label = {
@@ -456,7 +452,6 @@ private fun BillDialog(
     )
 }
 
-/* ---- Utils ---- */
 private fun formatPen(value: Double?): String =
     if (value == null) "S/ 0.00"
     else NumberFormat.getCurrencyInstance(Locale("es", "PE")).apply {

@@ -26,7 +26,6 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 
-/* Paleta oscura SpliteEasy (local para evitar dependencias a otras files) */
 private val BrandPrimary   = Color(0xFF1565C0)
 private val SuccessColor   = Color(0xFF2E7D32)
 private val WarningColor   = Color(0xFFFF8F00)
@@ -65,7 +64,7 @@ fun MembStatusScreen(vm: MembStatusViewModel = hiltViewModel()) {
 
 @Composable
 private fun StatusList(rows: List<StatusRowUi>) {
-    val format = remember { currencyFormatter("PEN") } // igual que tu web (S/)
+    val format = remember { currencyFormatter("PEN") }
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -120,9 +119,7 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
         shadowElevation = 2.dp
     ) {
         Column(Modifier.padding(16.dp)) {
-            // Top line: factura + monto
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Insignia del estado
                 val (badgeBg, badgeFg, badgeText) = when (row.statusUi) {
                     "PAGADO"      -> Triple(SuccessColor.copy(alpha = .15f), SuccessColor, "Pagado")
                     "EN_REVISION" -> Triple(WarningColor.copy(alpha = .15f), WarningColor, "En revisión")
@@ -160,8 +157,6 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
             Spacer(Modifier.height(8.dp))
             Divider(color = Border, thickness = 1.dp)
             Spacer(Modifier.height(8.dp))
-
-            // Detalles
             InfoRow("Descripción", row.descripcionContrib ?: "—")
             InfoRow("Estrategia", strategyLabel(row.strategy))
             InfoRow("Fecha factura", row.fechaFactura?.let { friendlyDate(it) } ?: "—")
@@ -196,8 +191,6 @@ private fun StatusMessage(title: String, message: String) {
     }
 }
 
-/* -------------------- helpers de formato (simple/robusto) -------------------- */
-
 private fun currencyFormatter(code: String): NumberFormat =
     NumberFormat.getCurrencyInstance(Locale("es", "PE")).apply {
         try { currency = Currency.getInstance(code) } catch (_: Throwable) {}
@@ -212,14 +205,12 @@ private fun strategyLabel(s: String?): String =
         else            -> s ?: "—"
     }
 
-/** Recibe "2025-01-31" o "2025-01-31T00:00:00Z" -> "31/01/2025" */
 private fun friendlyDate(input: String): String =
     input.take(10).let { ymd ->
         val p = ymd.split("-")
         if (p.size == 3) "${p[2]}/${p[1]}/${p[0]}" else input
     }
 
-/** Recibe "2025-01-31T14:25:00" -> "31/01/2025 14:25" (simple) */
 private fun friendlyDateTime(input: String): String {
     val d = friendlyDate(input)
     val time = input.drop(11).take(5)
