@@ -4,22 +4,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.spliteasy.spliteasy.core.Routes
 import com.spliteasy.spliteasy.data.local.TokenDataStore
+import com.spliteasy.spliteasy.ui.auth.ForgotPasswordScreen
 import com.spliteasy.spliteasy.ui.auth.LoginScreen
 import com.spliteasy.spliteasy.ui.auth.RegisterScreen
+import com.spliteasy.spliteasy.ui.auth.ResetPasswordScreen
 import com.spliteasy.spliteasy.ui.member.MemberNavRoot
 import com.spliteasy.spliteasy.ui.representative.RepresentativeNavRoot
 import kotlinx.coroutines.launch
 
 @Composable
 fun AppNav(startDestination: String = Routes.LOGIN) {
-    val nav    = rememberNavController()
-    val ctx    = LocalContext.current
-    val scope  = rememberCoroutineScope()
+    val nav = rememberNavController()
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
     val tokenStore = remember { TokenDataStore(ctx.applicationContext) }
 
     NavHost(
@@ -36,7 +40,8 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
                         launchSingleTop = true
                     }
                 },
-                onNavigateToRegister = { nav.navigate(Routes.REGISTER) }
+                onNavigateToRegister = { nav.navigate(Routes.REGISTER) },
+                onForgotPassword = { nav.navigate("auth/forgot-password") }
             )
         }
 
@@ -63,6 +68,29 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
                             popUpTo(0) { inclusive = true }
                             launchSingleTop = true
                         }
+                    }
+                }
+            )
+        }
+
+        // --- Recuperación de contraseña ---
+        composable("auth/forgot-password") {
+            ForgotPasswordScreen(
+                onBackToLogin = { nav.popBackStack() },
+                onGoToResetWithToken = { token ->
+                    nav.navigate("auth/reset-password?token=$token")
+                }
+            )
+        }
+
+        composable(
+            route = "auth/reset-password?token={token}",
+            arguments = listOf(navArgument("token") { nullable = true; type = NavType.StringType })
+        ) {
+            ResetPasswordScreen(
+                onDoneGoLogin = {
+                    nav.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )

@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.R
@@ -29,7 +31,6 @@ import com.spliteasy.spliteasy.ui.theme.*
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
@@ -39,20 +40,45 @@ import androidx.compose.ui.text.input.KeyboardType
 fun LoginScreen(
     onSuccess: (Boolean) -> Unit,
     onNavigateToRegister: () -> Unit,
+    onForgotPassword: () -> Unit,
     vm: LoginViewModel = hiltViewModel()
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+    var triedSubmit by remember { mutableStateOf(false) }
+
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    fun mapAuthError(e: String?): String? {
+        if (e.isNullOrBlank()) return null
+        val msg = e.lowercase()
+        return when {
+            "unable to resolve host" in msg || "failed to connect" in msg || "network" in msg ->
+                "Sin conexión. Verifica tu internet e inténtalo de nuevo."
+            "timeout" in msg || "time-out" in msg ->
+                "Tiempo de espera agotado. Reintenta en unos segundos."
+            "401" in msg || "forbidden" in msg || "unauthorized" in msg ||
+                    "contraseña incorrect" in msg || "usuario o contraseña" in msg || "invalid credential" in msg ->
+                "Usuario o contraseña incorrectos."
+            "429" in msg || "too many" in msg || "rate limit" in msg ->
+                "Demasiados intentos. Inténtalo nuevamente en unos minutos."
+            "500" in msg || "server" in msg || "internal" in msg ->
+                "Credenciales Erroneas."
+            else -> e
+        }
+    }
 
     LaunchedEffect(vm.error) {
-        vm.error?.let { msg ->
+        mapAuthError(vm.error)?.let { msg ->
             snackbarHostState.showSnackbar(message = msg, withDismissAction = true)
         }
     }
+
+    val invalidCreds = mapAuthError(vm.error) == "Usuario o contraseña incorrectos."
+    val usernameEmptyError = triedSubmit && username.isBlank()
+    val passwordEmptyError = triedSubmit && password.isBlank()
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -113,6 +139,42 @@ fun LoginScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         )
+
+                        val mappedError = mapAuthError(vm.error)
+                        AnimatedVisibility(
+                            visible = !mappedError.isNullOrBlank(),
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            if (!mappedError.isNullOrBlank()) {
+                                Surface(
+                                    color = Color(0x26E53935),
+                                    shape = RoundedCornerShape(10.dp),
+                                    tonalElevation = 0.dp,
+                                    shadowElevation = 0.dp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ErrorOutline,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            mappedError,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         Spacer(Modifier.height(6.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
@@ -140,11 +202,21 @@ fun LoginScreen(
                         Spacer(Modifier.height(6.dp))
                         OutlinedTextField(
                             value = username,
-                            onValueChange = { username = it },
+                            onValueChange = {
+                                username = it
+                                if (triedSubmit) vm.clearError()
+                            },
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = TextMuted) },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyLarge,
+                            isError = usernameEmptyError || invalidCreds,
+                            supportingText = {
+                                when {
+                                    usernameEmptyError -> Text("Ingresa tu usuario.", color = MaterialTheme.colorScheme.error)
+                                    invalidCreds -> Text("Usuario o contraseña incorrectos.", color = MaterialTheme.colorScheme.error)
+                                }
+                            },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = Color.White,
                                 unfocusedTextColor = Color.White,
@@ -157,6 +229,10 @@ fun LoginScreen(
                                 unfocusedLeadingIconColor = TextMuted,
                                 focusedLabelColor = Color.White,
                                 unfocusedLabelColor = Color.White
+                            ),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
                             )
                         )
 
@@ -170,7 +246,10 @@ fun LoginScreen(
                         Spacer(Modifier.height(6.dp))
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = {
+                                password = it
+                                if (triedSubmit) vm.clearError()
+                            },
                             singleLine = true,
                             leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = TextMuted) },
                             trailingIcon = {
@@ -183,10 +262,11 @@ fun LoginScreen(
                             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyLarge,
-                            isError = (vm.error == "Usuario o contraseña incorrectos."),
+                            isError = passwordEmptyError || invalidCreds,
                             supportingText = {
-                                if (vm.error == "Usuario o contraseña incorrectos.") {
-                                    Text("Usuario o contraseña incorrectos.", color = MaterialTheme.colorScheme.error)
+                                when {
+                                    passwordEmptyError -> Text("Ingresa tu contraseña.", color = MaterialTheme.colorScheme.error)
+                                    invalidCreds -> Text("Usuario o contraseña incorrectos.", color = MaterialTheme.colorScheme.error)
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -208,25 +288,27 @@ fun LoginScreen(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
+                                    triedSubmit = true
                                     vm.clearError()
                                     scope.launch {
+                                        if (username.isBlank() || password.isBlank()) return@launch
                                         vm.login(username, password)?.let(onSuccess)
                                     }
                                 }
                             )
                         )
 
-
                         Spacer(Modifier.height(10.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                             Text(
-                                "¿Olvidaste tu contraseña?",
-                                style = MaterialTheme.typography.bodySmall.copy(color = BrandSecondary),
-                                modifier = Modifier.clickable {
-                                    Toast.makeText(ctx, "Recuperar contraseña", Toast.LENGTH_SHORT).show()
-                                }
+                                text = "¿Olvidaste tu contraseña?",
+                                color = BrandSecondary,
+                                modifier = Modifier
+                                    .padding(top = 8.dp)
+                                    .clickable { onForgotPassword() }
                             )
                         }
+
                         AnimatedVisibility(
                             visible = vm.phase == LoginPhase.CHECKING_RECAPTCHA,
                             enter = fadeIn(),
@@ -261,8 +343,10 @@ fun LoginScreen(
 
                         Button(
                             onClick = {
+                                triedSubmit = true
                                 vm.clearError()
                                 scope.launch {
+                                    if (username.isBlank() || password.isBlank()) return@launch
                                     vm.login(username, password)?.let(onSuccess)
                                 }
                             },

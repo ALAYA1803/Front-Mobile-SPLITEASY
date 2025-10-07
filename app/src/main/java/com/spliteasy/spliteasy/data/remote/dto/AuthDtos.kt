@@ -9,7 +9,16 @@ data class SignInRequest(
     val captchaToken: String
 )
 typealias LoginRequest = SignInRequest
-
+data class ForgotPasswordRequest(val email: String)
+data class ForgotPasswordResponse(
+    val message: String? = null,
+    val resetToken: String? = null
+)
+data class ResetPasswordRequest(
+    val token: String,
+    val newPassword: String
+)
+data class SimpleMessageResponse(val message: String? = null)
 @JsonClass(generateAdapter = true)
 data class SignUpRequest(
     val username: String,

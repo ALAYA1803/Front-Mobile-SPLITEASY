@@ -70,6 +70,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation ("androidx.compose.ui:ui-text")
     implementation("androidx.compose.material:material:1.7.5")
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.foundation)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

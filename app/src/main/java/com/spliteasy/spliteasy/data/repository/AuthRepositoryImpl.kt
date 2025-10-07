@@ -4,7 +4,10 @@ import android.util.Log
 import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.data.remote.api.AuthService
 import com.spliteasy.spliteasy.data.remote.api.UsersService
+import com.spliteasy.spliteasy.data.remote.dto.ForgotPasswordRequest
+import com.spliteasy.spliteasy.data.remote.dto.ForgotPasswordResponse
 import com.spliteasy.spliteasy.data.remote.dto.LoginRequest
+import com.spliteasy.spliteasy.data.remote.dto.ResetPasswordRequest
 import com.spliteasy.spliteasy.data.remote.dto.SignUpRequest
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
 import retrofit2.HttpException
@@ -24,7 +27,6 @@ class AuthRepositoryImpl @Inject constructor(
         tokenStore.saveToken(token)
 
         val user = usersApi.getUserById(auth.id, bearer = "Bearer $token")
-
         tokenStore.saveUserId(user.id)
 
         val rolesUpper = user.roles.map { it.trim().uppercase() }
@@ -43,6 +45,15 @@ class AuthRepositoryImpl @Inject constructor(
         if (t is HttpException) {
             throw IllegalStateException("HTTP ${t.code()}: ${t.message()}")
         } else throw t
+    }
+
+    override suspend fun forgotPassword(email: String): ForgotPasswordResponse {
+        return authApi.forgotPassword(ForgotPasswordRequest(email))
+    }
+
+    override suspend fun resetPassword(token: String, newPassword: String): String {
+        val res = authApi.resetPassword(ResetPasswordRequest(token, newPassword))
+        return res.message ?: "Contraseña actualizada con éxito."
     }
 
     override suspend fun signup(req: SignUpRequest): Result<Unit> = runCatching {

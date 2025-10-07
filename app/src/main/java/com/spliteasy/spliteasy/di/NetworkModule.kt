@@ -54,7 +54,6 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val path = original.url.encodedPath
-                // Evita Authorization para endpoints de auth
                 val needsAuth = !path.contains("/authentication/", ignoreCase = true) &&
                         !path.contains("/auth/", ignoreCase = true)
 
@@ -75,13 +74,12 @@ object NetworkModule {
     @Provides @Singleton
     fun provideRetrofit(moshi: Moshi, okHttp: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            // Asegúrate de que BASE_URL termina con "/" (tu valor ya es ".../api/v1/")
+
             .baseUrl(BuildConfig.BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(okHttp)
             .build()
 
-    // ====== SERVICES ======
     @Provides @Singleton
     fun provideAccountService(retrofit: Retrofit): AccountService =
         retrofit.create(AccountService::class.java)
@@ -121,8 +119,6 @@ object NetworkModule {
     @Provides @Singleton
     fun provideHouseholdMembersService(retrofit: Retrofit): HouseholdMembersService =
         retrofit.create(HouseholdMembersService::class.java)
-
-    // ---- FALTABAN ESTOS DOS (eran los del error de Hilt) ----
     @Provides @Singleton
     fun provideMemberContributionsService(retrofit: Retrofit): MemberContributionsService =
         retrofit.create(MemberContributionsService::class.java)
