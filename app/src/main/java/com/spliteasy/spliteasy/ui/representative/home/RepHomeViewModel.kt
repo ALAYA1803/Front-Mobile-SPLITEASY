@@ -2,20 +2,21 @@ package com.spliteasy.spliteasy.ui.representative.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spliteasy.spliteasy.domain.model.HouseholdMini
-import com.spliteasy.spliteasy.domain.repository.RepresentativeRepository
-import com.spliteasy.spliteasy.data.remote.api.GroupsService
 import com.spliteasy.spliteasy.data.remote.api.BillsService
-import com.spliteasy.spliteasy.data.remote.api.ContributionsService
-import com.spliteasy.spliteasy.data.remote.dto.MemberDto
+import com.spliteasy.spliteasy.data.remote.api.GroupsService
+// ¡LA LÍNEA QUE FALTABA!
+import com.spliteasy.spliteasy.data.remote.api.ExpensesService
 import com.spliteasy.spliteasy.data.remote.dto.BillDto
 import com.spliteasy.spliteasy.data.remote.dto.ContributionDto
+import com.spliteasy.spliteasy.data.remote.dto.MemberDto
+import com.spliteasy.spliteasy.domain.model.HouseholdMini
+import com.spliteasy.spliteasy.domain.repository.RepresentativeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 data class RepHomeUi(
     val loading: Boolean = true,
@@ -33,7 +34,7 @@ class RepHomeViewModel @Inject constructor(
     private val repo: RepresentativeRepository,
     private val groups: GroupsService,
     private val billsService: BillsService,
-    private val contributionsService: ContributionsService
+    private val expensesService: ExpensesService
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(RepHomeUi())
@@ -58,16 +59,17 @@ class RepHomeViewModel @Inject constructor(
             }
 
             try {
+                val hhId = mine.id
                 val membersDef = async { groups.listAllHouseholdMembers() }
                 val billsDef   = async { billsService.listAll() }
-                val contribDef = async { contributionsService.listAll() }
-                val allMembers: List<MemberDto>        = membersDef.await()
-                val allBills: List<BillDto>            = billsDef.await()
-                val allContribs: List<ContributionDto> = contribDef.await()
-                val hhId = mine.id
-                val members        = allMembers.filter { it.normalizedHouseholdId() == hhId }
-                val billsCount     = allBills.count   { it.normalizedHouseholdId() == hhId }
-                val contributions  = allContribs.filter { it.householdId == hhId }
+                val contribDef = async { expensesService.listHouseholdContributions(hhId) }
+
+                val allMembers: List<MemberDto>   = membersDef.await()
+                val allBills: List<BillDto>       = billsDef.await()
+                val contributions: List<ContributionDto> = contribDef.await()
+
+                val members    = allMembers.filter { it.normalizedHouseholdId() == hhId }
+                val billsCount = allBills.count   { it.normalizedHouseholdId() == hhId }
                 val currency = mine.currency ?: "PEN"
 
                 _ui.value = RepHomeUi(
@@ -89,5 +91,14 @@ class RepHomeViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    // Aquí la función 'normalizedHouseholdId' que estaba faltando en el archivo
+    private fun MemberDto.normalizedHouseholdId(): Long? {
+        return this.householdId ?: this.household_id ?: this.household?.id
+    }
+
+    private fun BillDto.normalizedHouseholdId(): Long? {
+        return this.householdId ?: this.household_id
     }
 }
