@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.representative.members
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.HouseholdMembersService
 import com.spliteasy.spliteasy.data.remote.api.CreateHouseholdMemberRequest
 import com.spliteasy.spliteasy.data.remote.dto.HouseholdMemberDto
@@ -26,12 +28,15 @@ data class RepMembersUi(
 
 @HiltViewModel
 class RepMembersViewModel @Inject constructor(
+    app: Application,
     private val repo: RepresentativeRepository,
     private val membersApi: HouseholdMembersService
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow(RepMembersUi())
     val ui = _ui.asStateFlow()
+
+    private val app: Application = getApplication()
 
     fun load() {
         viewModelScope.launch {
@@ -42,7 +47,7 @@ class RepMembersViewModel @Inject constructor(
                     .firstOrNull { it.representanteId == meId }
 
                 if (myHousehold == null) {
-                    _ui.value = RepMembersUi(loading = false, error = "No tienes un hogar creado aún.")
+                    _ui.value = RepMembersUi(loading = false, error = app.getString(R.string.rep_members_vm_error_no_household))
                     return@launch
                 }
                 val hhId = myHousehold.id
@@ -69,7 +74,7 @@ class RepMembersViewModel @Inject constructor(
                     links = links
                 )
             } catch (t: Throwable) {
-                _ui.value = RepMembersUi(loading = false, error = t.message ?: "Error al cargar miembros.")
+                _ui.value = RepMembersUi(loading = false, error = t.message ?: app.getString(R.string.rep_members_vm_error_load_fail))
             }
         }
     }
@@ -86,12 +91,12 @@ class RepMembersViewModel @Inject constructor(
                 val matches = membersApi.searchUsersByEmail(email)
                 val user = matches.firstOrNull { it.email?.equals(email, ignoreCase = true) == true }
                 if (user == null) {
-                    _ui.value = _ui.value.copy(saving = false, error = "No se encontró un usuario con ese email.")
+                    _ui.value = _ui.value.copy(saving = false, error = app.getString(R.string.rep_members_vm_error_email_not_found))
                     return@launch
                 }
 
                 if (_ui.value.members.any { it.id == user.id }) {
-                    _ui.value = _ui.value.copy(saving = false, error = "El usuario ya es miembro.")
+                    _ui.value = _ui.value.copy(saving = false, error = app.getString(R.string.rep_members_vm_error_already_member))
                     return@launch
                 }
 
@@ -99,7 +104,7 @@ class RepMembersViewModel @Inject constructor(
                 openAddDialog(false)
                 load()
             } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(saving = false, error = t.message ?: "No se pudo añadir.")
+                _ui.value = _ui.value.copy(saving = false, error = t.message ?: app.getString(R.string.rep_members_vm_error_add_fail))
             } finally {
                 _ui.value = _ui.value.copy(saving = false)
             }
@@ -112,13 +117,13 @@ class RepMembersViewModel @Inject constructor(
             try {
                 val link = _ui.value.links.firstOrNull { it.userId == userId }
                 if (link == null) {
-                    _ui.value = _ui.value.copy(saving = false, error = "Relación no encontrada.")
+                    _ui.value = _ui.value.copy(saving = false, error = app.getString(R.string.rep_members_vm_error_link_not_found))
                     return@launch
                 }
                 membersApi.delete(link.id)
                 load()
             } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(saving = false, error = t.message ?: "No se pudo eliminar.")
+                _ui.value = _ui.value.copy(saving = false, error = t.message ?: app.getString(R.string.rep_members_vm_error_delete_fail))
             } finally {
                 _ui.value = _ui.value.copy(saving = false)
             }

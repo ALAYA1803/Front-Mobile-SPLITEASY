@@ -68,8 +68,6 @@ class MembContribsViewModel @Inject constructor(
                         val bill = contrib?.billId?.let { repo.getBill(it).getOrNull() }
                         val receipts = repo.listReceipts(mc.id).getOrElse { emptyList() }
                         val hasPendingReceipt = receipts.any { it.status.equals("PENDING", true) }
-
-                        // Los "keys" de estado se quedan en el ViewModel
                         val statusUi = when {
                             mc.status.equals("PAID", true) || mc.status.equals("PAGADO", true) -> "PAGADO"
                             hasPendingReceipt -> "EN_REVISION"

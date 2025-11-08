@@ -72,9 +72,8 @@ fun MembSettingsScreen(
 
     LaunchedEffect(isRestarting) {
         if (isRestarting) {
-            delay(200) // Delay más corto
+            delay(200)
             (context as? Activity)?.let { activity ->
-                // Resetear el estado antes de recrear
                 langVm.onLanguageApplied()
                 activity.recreate()
             }
@@ -225,7 +224,11 @@ fun MembSettingsScreen(
             }
             item {
                 SettingsCard {
-                    SectionHeader(icon = "🌎", title = "Idioma", subtitle = "Selecciona tu idioma")
+                    SectionHeader(
+                        icon = "🌎",
+                        title = stringResource(R.string.settings_language_title),
+                        subtitle = stringResource(R.string.settings_language_subtitle)
+                    )
                     Spacer(Modifier.height(12.dp))
                     LanguageSwitchComponent()
                 }

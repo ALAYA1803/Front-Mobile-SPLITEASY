@@ -231,4 +231,115 @@
     <string name="rep_create_vm_error_user_id">Could not get representative ID. Please log in again.</string>
     <string name="rep_create_vm_error_generic_fail">Could not create household.</string>
     <string name="rep_create_vm_error_unknown">Error creating household.</string>
+
+    <string name="rep_members_title">Household Members</string>
+    <string name="rep_members_subtitle">Manage who belongs to this household.</string>
+    <string name="rep_members_button_add">Add</string>
+    <string name="rep_members_cd_delete">Delete</string>
+    <string name="rep_members_empty_title">No members</string>
+    <string name="rep_members_empty_subtitle">You haven\'t added any members to this household yet.</string>
+    <string name="rep_members_empty_button">Add the first one</string>
+    <string name="rep_members_dialog_title">Add member</string>
+    <string name="rep_members_dialog_subtitle">Enter the email of the user you want to add.</string>
+    <string name="rep_members_dialog_label_email">Email</string>
+    <string name="rep_members_dialog_button_add">Add</string>
+    <string name="rep_members_dialog_button_cancel">Cancel</string>
+
+    <string name="rep_members_vm_error_no_household">You don\'t have a household created yet.</string>
+    <string name="rep_members_vm_error_load_fail">Error loading members.</string>
+    <string name="rep_members_vm_error_email_not_found">No user found with that email.</string>
+    <string name="rep_members_vm_error_already_member">The user is already a member.</string>
+    <string name="rep_members_vm_error_add_fail">Could not add member.</string>
+    <string name="rep_members_vm_error_link_not_found">Relationship not found.</string>
+    <string name="rep_members_vm_error_delete_fail">Could not delete member.</string>
+
+    <string name="rep_bills_title">Accounts / Bills</string>
+    <string name="rep_bills_subtitle">Register and manage your household bills.</string>
+    <plurals name="rep_bills_info_suffix_plural">
+        <item quantity="one">%1$d bill</item>
+        <item quantity="other">%1$d bills</item>
+    </plurals>
+
+    <string name="rep_bills_fab">New Bill</string>
+    <string name="rep_bills_dialog_title_new">New Bill</string>
+    <string name="rep_bills_dialog_title_edit">Edit Bill</string>
+    <string name="rep_bills_error_retry">Retry</string>
+    <string name="rep_bills_cd_edit">Edit</string>
+    <string name="rep_bills_cd_delete">Delete</string>
+    <string name="rep_bills_empty_title">No bills registered</string>
+    <string name="rep_bills_empty_subtitle">When you register a bill, it will appear here.</string>
+    <string name="rep_bills_dialog_save">Save</string>
+    <string name="rep_bills_dialog_cancel">Cancel</string>
+    <string name="rep_bills_dialog_label_desc">Description</string>
+    <string name="rep_bills_dialog_label_amount">Amount (%1$s)</string>
+    <string name="rep_bills_dialog_label_date">Date (yyyy-MM-dd)</string>
+    <string name="rep_bills_currency_default">$0.00</string>
+
+    <string name="rep_bills_vm_error_no_household">As a representative, you haven\'t created a household yet.</string>
+    <string name="rep_bills_vm_error_load_fail">Error loading bills.</string>
+    <string name="rep_bills_vm_default_household_name">My Household</string>
+    <string name="rep_bills_vm_error_form_invalid">Please complete the form correctly.</string>
+    <string name="rep_bills_vm_error_save_fail">Could not save bill.</string>
+    <string name="rep_bills_vm_error_delete_fail">Could not delete bill.</string>
+
+    <string name="rep_contrib_title">Contributions</string>
+    <string name="rep_contrib_subtitle_single">%1$s • %2$d contribution</string>
+    <string name="rep_contrib_subtitle_plural">%1$s • %2$d contributions</string>
+    <string name="rep_contrib_fab">New Contribution</string>
+    <string name="rep_contrib_list_empty">There are no contributions.</string>
+    <string name="rep_contrib_card_due_date">Due: %1$s</string>
+    <string name="rep_contrib_card_total">Total: %1$s</string>
+    <string name="rep_contrib_cd_delete">Delete</string>
+    <string name="rep_contrib_detail_receipts">Receipts</string>
+    <string name="rep_contrib_detail_receipts_pending">Receipts (%1$d)</string>
+    <string name="rep_contrib_status_paid">Paid</string>
+    <string name="rep_contrib_status_review">In Review</string>
+    <string name="rep_contrib_status_rejected">Rejected</string>
+    <string name="rep_contrib_status_pending">Pending</string>
+    <string name="rep_contrib_form_title">New Contribution</string>
+    <string name="rep_contrib_form_label_bill">Bill</string>
+    <string name="rep_contrib_form_label_desc">Description</string>
+    <string name="rep_contrib_form_label_due_date">Due Date</string>
+    <string name="rep_contrib_form_strategy_equal">Equal</string>
+    <string name="rep_contrib_form_strategy_income">Income-based</string>
+    <string name="rep_contrib_form_members_title">Members (tap to select)</string>
+    <string name="rep_contrib_form_role_rep">REPRESENTATIVE</string>
+    <string name="rep_contrib_form_role_member">MEMBER</string>
+    <string name="rep_contrib_form_button_cancel">Cancel</string>
+    <string name="rep_contrib_form_button_save">Save</string>
+    <string name="rep_contrib_review_title">Review Receipts</string>
+    <string name="rep_contrib_review_empty">No receipts for this item.</string>
+    <string name="rep_contrib_review_cd_download">Download</string>
+    <string name="rep_contrib_review_button_approve">Approve</string>
+    <string name="rep_contrib_review_button_reject">Reject</string>
+    <string name="rep_contrib_review_button_close">Close</string>
+    <string name="rep_contrib_receipt_download_title">Downloading receipt</string>
+    <string name="rep_contrib_receipt_fallback_name">receipt</string>
+    <string name="common_ok">OK</string>
+
+    <string name="rep_contrib_vm_error_no_household">You haven\'t created a household yet.</string>
+    <string name="rep_contrib_vm_error_load_fail">Error loading contributions.</string>
+    <string name="rep_contrib_vm_error_form_invalid">Please complete the form.</string>
+    <string name="rep_contrib_vm_error_create_fail">Could not create contribution.</string>
+    <string name="rep_contrib_vm_error_delete_fail">Could not delete.</string>
+    <string name="rep_contrib_vm_default_household">My Household</string>
+    <string name="rep_contrib_vm_user_fallback">User %1$d</string>
+    <string name="rep_contrib_vm_member_fallback">Member #%1$d</string>
+
+    <string name="rep_nav_app_name">SplitEasy</string>
+    <string name="rep_nav_title">Representative Dashboard</string>
+    <string name="rep_nav_tab_home">Home</string>
+    <string name="rep_nav_tab_members">Members</string>
+    <string name="rep_nav_tab_bills">Bills</string>
+    <string name="rep_nav_tab_contribs">Contributions</string>
+    <string name="rep_nav_tab_settings">Settings</string>
+    <string name="rep_nav_tab_create_household">Create Household</string>
+    <string name="rep_nav_cd_logout">Log out</string>
+    <string name="rep_nav_initial_fallback">R</string>
+
+    <string name="rep_nav_vm_default_name">Representative</string>
+    <string name="rep_nav_vm_error_load_user">Could not load user</string>
+
+    <string name="settings_language_title">Language</string>
+    <string name="settings_language_subtitle">Select your language</string>
 </resources>

@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.representative.bills
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.CreateBillRequest
 import com.spliteasy.spliteasy.data.remote.api.UsersService
@@ -41,13 +43,16 @@ data class RepBillsUi(
 
 @HiltViewModel
 class RepBillsViewModel @Inject constructor(
+    app: Application,
     private val repo: RepresentativeRepository,
     private val billsApi: BillsService,
     private val usersApi: UsersService
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow(RepBillsUi())
     val ui = _ui.asStateFlow()
+
+    private val app: Application = getApplication()
 
     fun load() {
         viewModelScope.launch {
@@ -60,7 +65,7 @@ class RepBillsViewModel @Inject constructor(
                 if (myHouse == null) {
                     _ui.value = _ui.value.copy(
                         loading = false,
-                        error = "Como representante, aún no has creado un hogar.",
+                        error = app.getString(R.string.rep_bills_vm_error_no_household),
                         householdId = null
                     )
                     return@launch
@@ -74,19 +79,19 @@ class RepBillsViewModel @Inject constructor(
                 val users = runCatching { usersApi.list() }.getOrDefault(emptyList())
                 val byId = users.associateBy { it.id }
                 val finalBills = billsUi.map { b ->
-                    val name = b.createdBy?.let { byId[it]?.username } ?: "—"
+                    val name = b.createdBy?.let { byId[it]?.username } ?: app.getString(R.string.common_fallback_dash)
                     b.copy(createdByName = name)
                 }
 
                 _ui.value = _ui.value.copy(
                     loading = false,
                     householdId = hhId,
-                    householdName = myHouse.name ?: "Mi Hogar",
+                    householdName = myHouse.name ?: app.getString(R.string.rep_bills_vm_default_household_name),
                     currency = myHouse.currency ?: "PEN",
                     bills = finalBills
                 )
             } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(loading = false, error = t.message ?: "Error al cargar facturas.")
+                _ui.value = _ui.value.copy(loading = false, error = t.message ?: app.getString(R.string.rep_bills_vm_error_load_fail))
             }
         }
     }
@@ -126,7 +131,7 @@ class RepBillsViewModel @Inject constructor(
         val fecha = _ui.value.formFecha.trim()
 
         if (desc.isBlank() || monto == null || monto <= 0.0 || fecha.isBlank()) {
-            _ui.value = _ui.value.copy(error = "Completa los datos correctamente.")
+            _ui.value = _ui.value.copy(error = app.getString(R.string.rep_bills_vm_error_form_invalid))
             return
         }
 
@@ -158,7 +163,7 @@ class RepBillsViewModel @Inject constructor(
                 closeForm()
                 load()
             } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(error = t.message ?: "No se pudo guardar la factura.")
+                _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_bills_vm_error_save_fail))
             }
         }
     }
@@ -169,7 +174,7 @@ class RepBillsViewModel @Inject constructor(
                 billsApi.delete(id)
                 load()
             } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(error = t.message ?: "No se pudo eliminar.")
+                _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_bills_vm_error_delete_fail))
             }
         }
     }

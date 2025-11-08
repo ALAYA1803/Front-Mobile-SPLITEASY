@@ -1,5 +1,6 @@
 package com.spliteasy.spliteasy.ui.representative
 
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -43,6 +44,7 @@ import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.domain.repository.AccountRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +56,9 @@ import com.spliteasy.spliteasy.ui.representative.members.RepMembersScreen
 import com.spliteasy.spliteasy.ui.representative.bills.RepBillsScreen
 import com.spliteasy.spliteasy.ui.representative.contributions.RepContributionsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary   = Color(0xFF1565C0)
 private val BgMain         = Color(0xFF1A1A1A)
@@ -64,16 +69,16 @@ private val TextSec        = Color(0xFFADB5BD)
 
 sealed class RepDest(
     val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val label: @Composable () -> String,
+    val icon: ImageVector
 ) {
-    data object Home          : RepDest("rep/home",          "Inicio",         Icons.Rounded.Home)
-    data object Members       : RepDest("rep/members",       "Miembros",       Icons.Rounded.Group)
-    data object Bills         : RepDest("rep/bills",         "Facturas",       Icons.Rounded.ReceiptLong)
-    data object Contributions : RepDest("rep/contributions", "Contribuciones", Icons.Rounded.Wallet)
-    data object Settings      : RepDest("rep/settings",      "Ajustes",        Icons.Rounded.Settings)
+    data object Home          : RepDest("rep/home",          { stringResource(R.string.rep_nav_tab_home) },     Icons.Rounded.Home)
+    data object Members       : RepDest("rep/members",       { stringResource(R.string.rep_nav_tab_members) },  Icons.Rounded.Group)
+    data object Bills         : RepDest("rep/bills",         { stringResource(R.string.rep_nav_tab_bills) },    Icons.Rounded.ReceiptLong)
+    data object Contributions : RepDest("rep/contributions", { stringResource(R.string.rep_nav_tab_contribs) }, Icons.Rounded.Wallet)
+    data object Settings      : RepDest("rep/settings",      { stringResource(R.string.rep_nav_tab_settings) }, Icons.Rounded.Settings)
 
-    data object CreateHousehold : RepDest("rep/create-household", "Crear hogar", Icons.Rounded.Home)
+    data object CreateHousehold : RepDest("rep/create-household", { stringResource(R.string.rep_nav_tab_create_household) }, Icons.Rounded.Home)
 }
 private val repTabs = listOf(
     RepDest.Home, RepDest.Members, RepDest.Bills, RepDest.Contributions, RepDest.Settings
@@ -87,22 +92,25 @@ sealed interface RepHeaderUiState {
 
 @HiltViewModel
 class RepHeaderViewModel @Inject constructor(
+    app: Application,
     private val accountRepo: AccountRepository
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow<RepHeaderUiState>(RepHeaderUiState.Loading)
     val ui = _ui.asStateFlow()
+
+    private val app: Application = getApplication()
 
     fun load() {
         viewModelScope.launch {
             accountRepo.me()
                 .onSuccess { profile ->
                     val id: Long = (profile.id ?: 0L)
-                    val name: String = (profile.username ?: "").ifBlank { "Representante" }
+                    val name: String = (profile.username ?: "").ifBlank { app.getString(R.string.rep_nav_vm_default_name) }
                     _ui.value = RepHeaderUiState.Ready(userId = id, username = name)
                 }
                 .onFailure { t ->
-                    _ui.value = RepHeaderUiState.Error(t.message ?: "No se pudo cargar el usuario")
+                    _ui.value = RepHeaderUiState.Error(t.message ?: app.getString(R.string.rep_nav_vm_error_load_user))
                 }
         }
     }
@@ -131,10 +139,13 @@ fun RepresentativeNavRoot(
     LaunchedEffect(Unit) { headerVm.load() }
     val logoutVm: RepLogoutViewModel = hiltViewModel()
 
-    val currentUserName = remember(headerState) {
-        (headerState as? RepHeaderUiState.Ready)?.username ?: "Representante"
+    val fallbackName = stringResource(R.string.rep_nav_vm_default_name)
+    val fallbackInitial = stringResource(R.string.rep_nav_initial_fallback)
+
+    val currentUserName = remember(headerState, fallbackName) {
+        (headerState as? RepHeaderUiState.Ready)?.username ?: fallbackName
     }
-    val initial = currentUserName.trim().ifBlank { "R" }.first().uppercaseChar().toString()
+    val initial = currentUserName.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -142,8 +153,8 @@ fun RepresentativeNavRoot(
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             RepTopBar(
-                title = "SplitEasy",
-                subtitle = "Panel del Representante",
+                title = stringResource(R.string.rep_nav_app_name),
+                subtitle = stringResource(R.string.rep_nav_title),
                 initial = initial,
                 username = currentUserName,
                 onLogout = { logoutVm.logout(onAfter = onLogout) }
@@ -233,7 +244,7 @@ private fun RepTopBar(
                 Text(subtitle, color = TextSec, style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onLogout) {
-                Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = "Cerrar sesión", tint = TextPri)
+                Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = stringResource(R.string.rep_nav_cd_logout), tint = TextPri)
             }
         }
         Divider(color = Border, thickness = 1.dp)
@@ -248,6 +259,8 @@ private fun RepBottomBar(tabs: List<RepDest>, nav: NavHostController) {
     NavigationBar(containerColor = BgCard, tonalElevation = 0.dp) {
         tabs.forEach { dest ->
             val selected = currentRoute == dest.route
+            val labelText = dest.label()
+
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -262,12 +275,12 @@ private fun RepBottomBar(tabs: List<RepDest>, nav: NavHostController) {
                 icon = {
                     Icon(
                         dest.icon,
-                        contentDescription = dest.label,
+                        contentDescription = labelText,
                         tint = if (selected) BrandPrimary else TextSec
                     )
                 },
                 label = {
-                    Text(dest.label, color = if (selected) TextPri else TextSec, maxLines = 1)
+                    Text(labelText, color = if (selected) TextPri else TextSec, maxLines = 1)
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = BrandPrimary,

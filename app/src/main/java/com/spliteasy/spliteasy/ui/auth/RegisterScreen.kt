@@ -244,7 +244,6 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(18.dp))
 
-                    // Lógica para el texto del Toast
                     val successMsg = stringResource(R.string.register_success_toast)
 
                     Button(

@@ -28,6 +28,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val BrandPrimarySoft = Color(0x331565C0)
@@ -46,18 +49,31 @@ fun RepBillsScreen(
     val ui by vm.ui.collectAsState()
     LaunchedEffect(Unit) { vm.load() }
 
+    val currencyFormat = remember(ui.currency) {
+        currencyFormatter(ui.currency)
+    }
+    val currencyDefault = stringResource(R.string.rep_bills_currency_default)
+
+    val billsCount = ui.bills.size
+    val billsInfoText = pluralStringResource(
+        id = R.plurals.rep_bills_info_suffix_plural,
+        count = billsCount,
+        formatArgs = arrayOf(billsCount)
+    )
+    val rightInfo = if (ui.householdName.isNotBlank())
+        "${ui.householdName} • $billsInfoText"
+    else
+        billsInfoText
+
     Surface(Modifier.fillMaxSize(), color = BgMain) {
         Box(Modifier.fillMaxSize()) {
 
             Column(Modifier.fillMaxSize()) {
 
                 TopHeader(
-                    title = "Cuentas / Facturas",
-                    subtitle = "Registra y gestiona las facturas de tu hogar.",
-                    rightInfo = if (ui.householdName.isNotBlank())
-                        "${ui.householdName} • ${ui.bills.size} facturas"
-                    else
-                        "${ui.bills.size} facturas"
+                    title = stringResource(R.string.rep_bills_title),
+                    subtitle = stringResource(R.string.rep_bills_subtitle),
+                    rightInfo = rightInfo
                 )
 
                 if (ui.error != null) {
@@ -71,7 +87,9 @@ fun RepBillsScreen(
                         bills = ui.bills,
                         isRepresentante = ui.isRepresentante,
                         onEdit = { vm.openForm(it) },
-                        onDelete = { vm.delete(it.id) }
+                        onDelete = { vm.delete(it.id) },
+                        currencyFormat = currencyFormat,
+                        currencyDefault = currencyDefault
                     )
                 }
             }
@@ -85,16 +103,21 @@ fun RepBillsScreen(
                         .align(Alignment.BottomEnd)
                         .padding(16.dp),
                     icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
-                    text = { Text("Nueva factura") }
+                    text = { Text(stringResource(R.string.rep_bills_fab)) }
                 )
             }
 
             if (ui.formVisible) {
                 BillDialog(
-                    title = if (ui.editingId == null) "Nueva factura" else "Editar factura",
+                    title = if (ui.editingId == null) {
+                        stringResource(R.string.rep_bills_dialog_title_new)
+                    } else {
+                        stringResource(R.string.rep_bills_dialog_title_edit)
+                    },
                     description = ui.formDescription,
                     amount = ui.formMonto,
                     date = ui.formFecha,
+                    currency = ui.currency,
                     onDesc = vm::onDescChange,
                     onAmount = vm::onMontoChange,
                     onDate = vm::onFechaChange,
@@ -172,7 +195,7 @@ private fun ErrorBar(msg: String, onRetry: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(msg, color = Color(0xFFFFCDD2), modifier = Modifier.weight(1f))
-            TextButton(onClick = onRetry) { Text("Reintentar", color = Color.White) }
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = Color.White) }
         }
     }
 }
@@ -214,7 +237,9 @@ private fun BillsList(
     bills: List<BillUi>,
     isRepresentante: Boolean,
     onEdit: (BillUi) -> Unit,
-    onDelete: (BillUi) -> Unit
+    onDelete: (BillUi) -> Unit,
+    currencyFormat: NumberFormat,
+    currencyDefault: String
 ) {
     if (bills.isEmpty()) {
         EmptyState()
@@ -231,7 +256,9 @@ private fun BillsList(
                 bill = b,
                 isRepresentante = isRepresentante,
                 onEdit = { onEdit(b) },
-                onDelete = { onDelete(b) }
+                onDelete = { onDelete(b) },
+                currencyFormat = currencyFormat,
+                currencyDefault = currencyDefault
             )
         }
     }
@@ -242,8 +269,12 @@ private fun BillRowCard(
     bill: BillUi,
     isRepresentante: Boolean,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    currencyFormat: NumberFormat,
+    currencyDefault: String
 ) {
+    val fallbackDash = stringResource(R.string.common_fallback_dash)
+
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = CardBg,
@@ -262,7 +293,7 @@ private fun BillRowCard(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = formatPen(bill.monto),
+                    text = bill.monto?.let { currencyFormat.format(it) } ?: currencyDefault,
                     color = TextPri,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
@@ -273,7 +304,7 @@ private fun BillRowCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
                             Spacer(Modifier.width(6.dp))
-                            Text(bill.fecha ?: "—", color = TextSec)
+                            Text(bill.fecha ?: fallbackDash, color = TextSec)
                         }
                     },
                     colors = AssistChipDefaults.assistChipColors(
@@ -287,7 +318,7 @@ private fun BillRowCard(
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    bill.description ?: "Representante",
+                    bill.description ?: fallbackDash,
                     color = TextPri,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -311,7 +342,7 @@ private fun BillRowCard(
                             containerColor = CardBgElev, contentColor = TextSec
                         )
                     ) {
-                        Icon(Icons.Rounded.Edit, contentDescription = "Editar")
+                        Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.rep_bills_cd_edit))
                     }
                     OutlinedIconButton(
                         onClick = onDelete,
@@ -320,7 +351,7 @@ private fun BillRowCard(
                             containerColor = CardBgElev, contentColor = Danger
                         )
                     ) {
-                        Icon(Icons.Rounded.Delete, contentDescription = "Eliminar")
+                        Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_bills_cd_delete))
                     }
                 }
             }
@@ -347,10 +378,10 @@ private fun EmptyState() {
             Text("∑", color = BrandPrimary, style = MaterialTheme.typography.headlineSmall)
         }
         Spacer(Modifier.height(16.dp))
-        Text("No hay facturas registradas", color = TextPri, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.rep_bills_empty_title), color = TextPri, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(6.dp))
         Text(
-            "Cuando registres una factura aparecerá aquí.",
+            stringResource(R.string.rep_bills_empty_subtitle),
             color = TextSec,
             style = MaterialTheme.typography.bodyMedium
         )
@@ -364,6 +395,7 @@ private fun BillDialog(
     description: String,
     amount: String,
     date: String,
+    currency: String,
     onDesc: (String) -> Unit,
     onAmount: (String) -> Unit,
     onDate: (String) -> Unit,
@@ -376,14 +408,14 @@ private fun BillDialog(
             Button(
                 onClick = onSave,
                 colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-            ) { Text("Guardar") }
+            ) { Text(stringResource(R.string.rep_bills_dialog_save)) }
         },
         dismissButton = {
             OutlinedButton(
                 onClick = onCancel,
                 border = BorderStroke(1.dp, Border),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPri)
-            ) { Text("Cancelar") }
+            ) { Text(stringResource(R.string.rep_bills_dialog_cancel)) }
         },
         title = {
             Text(
@@ -397,7 +429,7 @@ private fun BillDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = onDesc,
-                    label = { Text("Descripción") },
+                    label = { Text(stringResource(R.string.rep_bills_dialog_label_desc)) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = BrandPrimary,
@@ -412,7 +444,7 @@ private fun BillDialog(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = onAmount,
-                    label = { Text("Monto (PEN)") },
+                    label = { Text(stringResource(R.string.rep_bills_dialog_label_amount, currency)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -428,7 +460,7 @@ private fun BillDialog(
                 OutlinedTextField(
                     value = date,
                     onValueChange = onDate,
-                    label = { Text("Fecha (yyyy-MM-dd)") },
+                    label = { Text(stringResource(R.string.rep_bills_dialog_label_date)) },
                     singleLine = true,
                     leadingIcon = {
                         Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
@@ -452,10 +484,13 @@ private fun BillDialog(
     )
 }
 
-private fun formatPen(value: Double?): String =
-    if (value == null) "S/ 0.00"
-    else NumberFormat.getCurrencyInstance(Locale("es", "PE")).apply {
-        currency = Currency.getInstance("PEN")
+private fun currencyFormatter(code: String): NumberFormat {
+    val locale = if (code == "PEN") Locale("es", "PE") else Locale.getDefault()
+    return NumberFormat.getCurrencyInstance(locale).apply {
+        try { currency = Currency.getInstance(code) } catch (_: Throwable) {
+            currency = Currency.getInstance("PEN")
+        }
         maximumFractionDigits = 2
         minimumFractionDigits = 2
-    }.format(value)
+    }
+}

@@ -36,6 +36,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val Brand = Color(0xFF1565C0)
 private val BgMain = Color(0xFF1A1A1A)
@@ -69,16 +71,21 @@ fun RepContributionsScreen(
                 title = {
                     Column {
                         Text(
-                            "Contribuciones",
+                            stringResource(R.string.rep_contrib_title),
                             color = TextPri,
                             style = MaterialTheme.typography.titleLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        val hh = if (ui.householdName.isNotBlank()) ui.householdName else "Mi hogar"
+                        val hh = if (ui.householdName.isNotBlank()) ui.householdName else stringResource(R.string.rep_contrib_vm_default_household)
                         val count = ui.contributions.size
+                        val subtitle = if (count == 1) {
+                            stringResource(R.string.rep_contrib_subtitle_single, hh, count)
+                        } else {
+                            stringResource(R.string.rep_contrib_subtitle_plural, hh, count)
+                        }
                         Text(
-                            "$hh • $count ${if (count == 1) "contribución" else "contribuciones"}",
+                            subtitle,
                             color = TextSec,
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
@@ -99,7 +106,7 @@ fun RepContributionsScreen(
                     containerColor = Brand,
                     contentColor = Color.White,
                     icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
-                    text = { Text("Nueva contribución") },
+                    text = { Text(stringResource(R.string.rep_contrib_fab)) },
                     modifier = Modifier.navigationBarsPadding()
                 )
             }
@@ -126,7 +133,8 @@ fun RepContributionsScreen(
                     onOpenReview = {
                         vm.openReview(it)
                         scope.launch { reviewSheetState.show() }
-                    }
+                    },
+                    currency = ui.currency
                 )
             }
         }
@@ -167,9 +175,10 @@ fun RepContributionsScreen(
             containerColor = CardBg,
             dragHandle = { SheetHandle() },
 
-        ) {
+            ) {
             ReviewReceiptsSheet(
                 ui = ui,
+                currency = ui.currency,
                 onClose = {
                     scope.launch { reviewSheetState.hide() }.invokeOnCompletion { vm.closeReview() }
                 },
@@ -187,14 +196,18 @@ private fun ContributionsList(
     items: List<ContributionUi>,
     onToggle: (Long) -> Unit,
     onDelete: (Long) -> Unit,
-    onOpenReview: (ContributionDetailUi) -> Unit
+    onOpenReview: (ContributionDetailUi) -> Unit,
+    currency: String
 ) {
     if (items.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No hay contribuciones.", color = TextSec)
+            Text(stringResource(R.string.rep_contrib_list_empty), color = TextSec)
         }
         return
     }
+
+    val formatter = remember(currency) { currencyFormatter(currency) }
+    val fallbackDash = stringResource(R.string.common_fallback_dash)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -207,7 +220,7 @@ private fun ContributionsList(
                 color = CardBg,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
-                border = ButtonDefaults.outlinedButtonBorder.copy(
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                     width = 1.dp,
                     brush = androidx.compose.ui.graphics.SolidColor(Border)
                 )
@@ -218,15 +231,17 @@ private fun ContributionsList(
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
-                                c.description ?: "—",
+                                c.description ?: fallbackDash,
                                 color = TextPri,
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            val date = c.fechaLimite ?: "—"
+                            val date = c.fechaLimite ?: fallbackDash
                             Text(
-                                "Vence: $date  •  Total: ${formatPen(c.montoTotal)}",
+                                stringResource(R.string.rep_contrib_card_due_date, date) +
+                                        "  •  " +
+                                        stringResource(R.string.rep_contrib_card_total, formatter.format(c.montoTotal)),
                                 color = TextSec,
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 2,
@@ -241,13 +256,17 @@ private fun ContributionsList(
                             )
                         }
                         IconButton(onClick = { onDelete(c.id) }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = "Eliminar", tint = Danger)
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_contrib_cd_delete), tint = Danger)
                         }
                     }
 
                     if (c.expanded) {
                         Spacer(Modifier.height(8.dp))
-                        ContributionDetailsList(details = c.details, onOpenReview = onOpenReview)
+                        ContributionDetailsList(
+                            details = c.details,
+                            onOpenReview = onOpenReview,
+                            formatter = formatter
+                        )
                     }
                 }
             }
@@ -258,8 +277,12 @@ private fun ContributionsList(
 @Composable
 private fun ContributionDetailsList(
     details: List<ContributionDetailUi>,
-    onOpenReview: (ContributionDetailUi) -> Unit
+    onOpenReview: (ContributionDetailUi) -> Unit,
+    formatter: NumberFormat
 ) {
+    val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
+    val receiptsText = stringResource(R.string.rep_contrib_detail_receipts)
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -275,7 +298,7 @@ private fun ContributionDetailsList(
                     .padding(horizontal = 4.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val initial = d.displayName.trim().ifBlank { "U" }.first().uppercaseChar().toString()
+                val initial = d.displayName.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
                 Box(
                     Modifier.size(36.dp).clip(CircleShape).background(Brand.copy(.18f)),
                     contentAlignment = Alignment.Center
@@ -284,7 +307,13 @@ private fun ContributionDetailsList(
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(d.displayName, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${d.displayRole} • ${formatPen(d.monto)}", color = TextSec, style = MaterialTheme.typography.bodySmall)
+
+                    val roleText = if (d.displayRole == "REPRESENTANTE") {
+                        stringResource(R.string.rep_contrib_form_role_rep)
+                    } else {
+                        stringResource(R.string.rep_contrib_form_role_member)
+                    }
+                    Text("$roleText • ${formatter.format(d.monto)}", color = TextSec, style = MaterialTheme.typography.bodySmall)
                 }
 
                 StatusChip(d.status)
@@ -294,7 +323,11 @@ private fun ContributionDetailsList(
                     onClick = { onOpenReview(d) },
                     label = {
                         Text(
-                            if (d.pendingReceiptsCount > 0) "Boletas (${d.pendingReceiptsCount})" else "Boletas",
+                            if (d.pendingReceiptsCount > 0) {
+                                stringResource(R.string.rep_contrib_detail_receipts_pending, d.pendingReceiptsCount)
+                            } else {
+                                receiptsText
+                            },
                             color = TextPri,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -310,12 +343,12 @@ private fun ContributionDetailsList(
     }
 }
 
-@Composable private fun StatusChip(status: String) {
-    val (bg, fg, label) = when (status.uppercase()) {
-        "PAGADO" -> Triple(Success.copy(.15f), Success, "Pagado")
-        "EN_REVISION" -> Triple(Warning.copy(.12f), Warning, "En revisión")
-        "RECHAZADO" -> Triple(Danger.copy(.12f), Danger, "Rechazado")
-        else -> Triple(Color(0x335E6A7D), TextSec, "Pendiente")
+@Composable private fun StatusChip(statusKey: String) {
+    val (bg, fg, label) = when (statusKey.uppercase()) {
+        "PAGADO" -> Triple(Success.copy(.15f), Success, stringResource(R.string.rep_contrib_status_paid))
+        "EN_REVISION" -> Triple(Warning.copy(.12f), Warning, stringResource(R.string.rep_contrib_status_review))
+        "RECHAZADO" -> Triple(Danger.copy(.12f), Danger, stringResource(R.string.rep_contrib_status_rejected))
+        else -> Triple(Color(0x335E6A7D), TextSec, stringResource(R.string.rep_contrib_status_pending))
     }
     AssistChip(
         onClick = {},
@@ -340,6 +373,8 @@ private fun CreateContributionSheet(
     var datePickerOpen by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
 
+    val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
+
     if (datePickerOpen) {
         DatePickerDialog(
             onDismissRequest = { datePickerOpen = false },
@@ -354,9 +389,9 @@ private fun CreateContributionSheet(
                         onDate(ymd)
                     }
                     datePickerOpen = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.common_ok)) }
             },
-            dismissButton = { TextButton(onClick = { datePickerOpen = false }) { Text("Cancelar") } }
+            dismissButton = { TextButton(onClick = { datePickerOpen = false }) { Text(stringResource(R.string.rep_contrib_form_button_cancel)) } }
         ) {
             DatePicker(state = datePickerState)
         }
@@ -369,7 +404,7 @@ private fun CreateContributionSheet(
             .imePadding()
     ) {
         Text(
-            "Nueva contribución",
+            stringResource(R.string.rep_contrib_form_title),
             color = TextPri,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -388,14 +423,14 @@ private fun CreateContributionSheet(
                     value = ui.allBills.firstOrNull { it.id == ui.formBillId }?.description ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Comprobante (Bill)") },
+                    label = { Text(stringResource(R.string.rep_contrib_form_label_bill)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = billsOpen) },
                     modifier = Modifier.menuAnchor().fillMaxWidth()
                 )
                 ExposedDropdownMenu(expanded = billsOpen, onDismissRequest = { billsOpen = false }) {
                     ui.allBills.forEach { b ->
                         DropdownMenuItem(
-                            text = { Text(b.description ?: "Bill #${b.id}") },
+                            text = { Text(b.description ?: stringResource(R.string.memb_contribs_fallback_bill) + " #${b.id}") },
                             onClick = {
                                 onBill(b.id)
                                 billsOpen = false
@@ -408,7 +443,7 @@ private fun CreateContributionSheet(
             OutlinedTextField(
                 value = ui.formDescription,
                 onValueChange = onDesc,
-                label = { Text("Descripción") },
+                label = { Text(stringResource(R.string.rep_contrib_form_label_desc)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -417,7 +452,7 @@ private fun CreateContributionSheet(
                 value = ui.formFechaLimite,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Fecha límite") },
+                label = { Text(stringResource(R.string.rep_contrib_form_label_due_date)) },
                 trailingIcon = {
                     IconButton(onClick = { datePickerOpen = true }) {
                         Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
@@ -430,12 +465,12 @@ private fun CreateContributionSheet(
                 FilterChip(
                     selected = ui.formStrategy == "EQUAL",
                     onClick = { onStrategy("EQUAL") },
-                    label = { Text("Igualitaria") }
+                    label = { Text(stringResource(R.string.rep_contrib_form_strategy_equal)) }
                 )
                 FilterChip(
                     selected = ui.formStrategy == "INCOME_BASED",
                     onClick = { onStrategy("INCOME_BASED") },
-                    label = { Text("Según ingresos") }
+                    label = { Text(stringResource(R.string.rep_contrib_form_strategy_income)) }
                 )
             }
 
@@ -447,7 +482,7 @@ private fun CreateContributionSheet(
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text("Miembros (toque para seleccionar)", color = TextSec, style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.rep_contrib_form_members_title), color = TextSec, style = MaterialTheme.typography.bodySmall)
                 ui.allMembers.forEach { m ->
                     val selected = ui.formSelectedMembers.contains(m.memberId)
                     Row(
@@ -459,7 +494,7 @@ private fun CreateContributionSheet(
                             .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val initial = m.username.trim().ifBlank { "U" }.first().uppercaseChar().toString()
+                        val initial = m.username.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
                         Box(
                             Modifier.size(28.dp).clip(CircleShape).background(Brand.copy(.18f)),
                             contentAlignment = Alignment.Center
@@ -467,7 +502,12 @@ private fun CreateContributionSheet(
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(m.username, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(if (m.isRepresentative) "REPRESENTANTE" else "MIEMBRO", color = TextSec, style = MaterialTheme.typography.bodySmall)
+                            val roleText = if (m.isRepresentative) {
+                                stringResource(R.string.rep_contrib_form_role_rep)
+                            } else {
+                                stringResource(R.string.rep_contrib_form_role_member)
+                            }
+                            Text(roleText, color = TextSec, style = MaterialTheme.typography.bodySmall)
                         }
                         Checkbox(checked = selected, onCheckedChange = { onToggleMember(m.memberId) })
                     }
@@ -486,12 +526,12 @@ private fun CreateContributionSheet(
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier.weight(1f)
-            ) { Text("Cancelar") }
+            ) { Text(stringResource(R.string.rep_contrib_form_button_cancel)) }
             Button(
                 onClick = onSave,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Brand)
-            ) { Text("Guardar") }
+            ) { Text(stringResource(R.string.rep_contrib_form_button_save)) }
         }
     }
 }
@@ -499,18 +539,21 @@ private fun CreateContributionSheet(
 @Composable
 private fun ReviewReceiptsSheet(
     ui: RepContribUi,
+    currency: String,
     onClose: () -> Unit,
     onDownload: (PaymentReceiptDto) -> Unit,
     onApprove: (PaymentReceiptDto) -> Unit,
     onReject: (PaymentReceiptDto) -> Unit
 ) {
+    val formatter = remember(currency) { currencyFormatter(currency) }
+
     Column(
         Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
     ) {
         Text(
-            "Revisar boletas",
+            stringResource(R.string.rep_contrib_review_title),
             color = TextPri,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -519,7 +562,7 @@ private fun ReviewReceiptsSheet(
         val d = ui.reviewForDetail
         if (d != null) {
             Text(
-                "${d.displayName} • ${formatPen(d.monto)}",
+                "${d.displayName} • ${formatter.format(d.monto)}",
                 color = TextSec,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -532,7 +575,7 @@ private fun ReviewReceiptsSheet(
             }
         } else {
             if (ui.reviewReceipts.isEmpty()) {
-                Text("No hay boletas para este detalle.", color = TextSec, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.rep_contrib_review_empty), color = TextSec, modifier = Modifier.padding(16.dp))
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
@@ -547,7 +590,7 @@ private fun ReviewReceiptsSheet(
                             Column(Modifier.fillMaxWidth().padding(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = { onDownload(r) }) {
-                                        Icon(Icons.Rounded.Download, contentDescription = "Descargar", tint = TextPri)
+                                        Icon(Icons.Rounded.Download, contentDescription = stringResource(R.string.rep_contrib_review_cd_download), tint = TextPri)
                                     }
                                     Column(Modifier.weight(1f)) {
                                         Text(r.filename, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -572,12 +615,12 @@ private fun ReviewReceiptsSheet(
                                         enabled = r.status.equals("PENDING", ignoreCase = true),
                                         modifier = Modifier.weight(1f),
                                         colors = ButtonDefaults.filledTonalButtonColors(containerColor = Success.copy(.15f))
-                                    ) { Text("Aprobar", color = Success) }
+                                    ) { Text(stringResource(R.string.rep_contrib_review_button_approve), color = Success) }
                                     OutlinedButton(
                                         onClick = { onReject(r) },
                                         enabled = r.status.equals("PENDING", ignoreCase = true),
                                         modifier = Modifier.weight(1f)
-                                    ) { Text("Rechazar", color = Danger) }
+                                    ) { Text(stringResource(R.string.rep_contrib_review_button_reject), color = Danger) }
                                 }
                             }
                         }
@@ -592,7 +635,7 @@ private fun ReviewReceiptsSheet(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onClose) { Text("Cerrar") }
+            TextButton(onClick = onClose) { Text(stringResource(R.string.rep_contrib_review_button_close)) }
         }
     }
 }
@@ -624,7 +667,7 @@ private fun SheetHandle() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(msg, color = Color(0xFFFFCDD2), modifier = Modifier.weight(1f))
-            TextButton(onClick = onRetry) { Text("Reintentar", color = Color.White) }
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = Color.White) }
         }
     }
 }
@@ -636,12 +679,25 @@ private fun formatPen(value: Double): String =
         minimumFractionDigits = 2
     }.format(value)
 
+private fun currencyFormatter(code: String): NumberFormat {
+    val locale = if (code == "PEN") Locale("es", "PE") else Locale.getDefault()
+    return NumberFormat.getCurrencyInstance(locale).apply {
+        try { currency = Currency.getInstance(code) } catch (_: Throwable) {
+            currency = Currency.getInstance("PEN")
+        }
+        maximumFractionDigits = 2
+        minimumFractionDigits = 2
+    }
+}
+
 private fun Context.downloadReceipt(url: String?, filename: String?) {
     if (url.isNullOrBlank()) return
-    val safeName = (filename?.ifBlank { null } ?: "receipt").replace(Regex("[^a-zA-Z0-9._-]"), "_")
+    val fallbackName = this.getString(R.string.rep_contrib_receipt_fallback_name)
+    val safeName = (filename?.ifBlank { null } ?: fallbackName).replace(Regex("[^a-zA-Z0-9._-]"), "_")
+
     val request = DownloadManager.Request(Uri.parse(url))
         .setTitle(safeName)
-        .setDescription("Descargando boleta")
+        .setDescription(this.getString(R.string.rep_contrib_receipt_download_title))
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeName)
         .setAllowedOverMetered(true)

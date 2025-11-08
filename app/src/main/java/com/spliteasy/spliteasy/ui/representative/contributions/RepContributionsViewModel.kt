@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.representative.contributions
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.ContributionsService
 import com.spliteasy.spliteasy.data.remote.api.CreateContributionRequest
@@ -74,8 +76,10 @@ data class RepContribUi(
     val reviewReceipts: List<PaymentReceiptDto> = emptyList()
 )
 
+
 @HiltViewModel
 class RepContributionsViewModel @Inject constructor(
+    app: Application,
     private val repo: RepresentativeRepository,
     private val billsApi: BillsService,
     private val usersApi: UsersService,
@@ -83,10 +87,12 @@ class RepContributionsViewModel @Inject constructor(
     private val mcApi: MemberContributionsService,
     private val receiptsApi: PaymentReceiptsService,
     private val hhMembersApi: HouseholdMembersService
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow(RepContribUi())
     val ui = _ui.asStateFlow()
+
+    private val app: Application = getApplication()
 
     fun load() = viewModelScope.launch {
         _ui.value = _ui.value.copy(loading = true, error = null)
@@ -95,7 +101,7 @@ class RepContributionsViewModel @Inject constructor(
             val households = repo.listAllHouseholds().getOrThrow()
             val myHouse = households.firstOrNull { it.representanteId == meId }
                 ?: run {
-                    _ui.value = _ui.value.copy(loading = false, error = "Aún no has creado un hogar.")
+                    _ui.value = _ui.value.copy(loading = false, error = app.getString(R.string.rep_contrib_vm_error_no_household))
                     return@launch
                 }
             val hhId = myHouse.id
@@ -113,7 +119,7 @@ class RepContributionsViewModel @Inject constructor(
 
             val membersLite: List<MemberLite> = memberLinks.map { link ->
                 val uId = link.userId ?: -1L
-                val uname = usersById[uId]?.username ?: "Usuario $uId"
+                val uname = usersById[uId]?.username ?: app.getString(R.string.rep_contrib_vm_user_fallback, uId)
                 MemberLite(
                     memberId = link.id,
                     userId = uId,
@@ -131,7 +137,7 @@ class RepContributionsViewModel @Inject constructor(
 
                 val details: List<ContributionDetailUi> = mcs.map { mc ->
                     val member = memberByMemberId[mc.memberId]
-                    val displayName = member?.username ?: "Miembro #${mc.memberId}"
+                    val displayName = member?.username ?: app.getString(R.string.rep_contrib_vm_member_fallback, mc.memberId)
                     val role = if (member?.isRepresentative == true) "REPRESENTANTE" else "MIEMBRO"
 
                     ContributionDetailUi(
@@ -174,14 +180,14 @@ class RepContributionsViewModel @Inject constructor(
             _ui.value = _ui.value.copy(
                 loading = false,
                 householdId = hhId,
-                householdName = myHouse.name ?: "Mi Hogar",
+                householdName = myHouse.name ?: app.getString(R.string.rep_contrib_vm_default_household),
                 currency = myHouse.currency ?: "PEN",
                 contributions = withCounts,
                 allBills = allBills.filter { it.normalizedHouseholdId() == hhId },
                 allMembers = membersLite
             )
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(loading = false, error = t.message ?: "Error al cargar contribuciones.")
+            _ui.value = _ui.value.copy(loading = false, error = t.message ?: app.getString(R.string.rep_contrib_vm_error_load_fail))
         }
     }
 
@@ -222,7 +228,7 @@ class RepContributionsViewModel @Inject constructor(
         val members = _ui.value.formSelectedMembers.toList()
 
         if (bill == null || desc.isBlank() || date.isBlank() || members.isEmpty()) {
-            _ui.value = _ui.value.copy(error = "Completa los datos del formulario.")
+            _ui.value = _ui.value.copy(error = app.getString(R.string.rep_contrib_vm_error_form_invalid))
             return@launch
         }
 
@@ -240,7 +246,7 @@ class RepContributionsViewModel @Inject constructor(
             closeForm()
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(error = t.message ?: "No se pudo crear la contribución.")
+            _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_create_fail))
         }
     }
     fun openReview(detail: ContributionDetailUi) {
@@ -301,7 +307,7 @@ class RepContributionsViewModel @Inject constructor(
             contribApi.delete(id)
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(error = t.message ?: "No se pudo eliminar.")
+            _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_delete_fail))
         }
     }
 

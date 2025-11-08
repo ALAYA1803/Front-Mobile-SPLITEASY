@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val BgMain       = Color(0xFF1A1A1A)
@@ -39,7 +41,7 @@ fun RepMembersScreen(vm: RepMembersViewModel = hiltViewModel()) {
                 ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = BrandPrimary)
                 }
-                ui.error != null -> ErrorBox(ui.error ?: "Error", onRetry = vm::load)
+                ui.error != null -> ErrorBox(ui.error ?: stringResource(R.string.member_home_error_generic), onRetry = vm::load)
                 ui.members.isEmpty() -> EmptyBox(onAdd = { vm.openAddDialog(true) })
                 else -> MembersList(
                     items = ui.members,
@@ -70,14 +72,14 @@ private fun TopRow(onAddClick: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                "Miembros del hogar",
+                stringResource(R.string.rep_members_title),
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = TextPri,
                     fontWeight = FontWeight.Bold
                 )
             )
             Text(
-                "Administra quién pertenece a este hogar.",
+                stringResource(R.string.rep_members_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(color = TextSec)
             )
         }
@@ -87,7 +89,7 @@ private fun TopRow(onAddClick: () -> Unit) {
         ) {
             Icon(Icons.Rounded.GroupAdd, contentDescription = null, tint = Color.White)
             Spacer(Modifier.width(8.dp))
-            Text("Añadir")
+            Text(stringResource(R.string.rep_members_button_add))
         }
     }
     Divider(color = Border, thickness = 1.dp)
@@ -98,6 +100,9 @@ private fun MembersList(
     items: List<com.spliteasy.spliteasy.data.remote.dto.RawUserDto>,
     onDelete: (Long) -> Unit
 ) {
+    val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
+    val fallbackDash = stringResource(R.string.common_fallback_dash)
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -110,7 +115,9 @@ private fun MembersList(
                 shape = RoundedCornerShape(14.dp),
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
-                border = ButtonDefaults.outlinedButtonBorder.copy(
+                border = ButtonDefaults.outlinedButtonBorder(
+                    enabled = true
+                ).copy(
                     width = 1.dp,
                     brush = androidx.compose.ui.graphics.SolidColor(Border)
                 )
@@ -121,8 +128,8 @@ private fun MembersList(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val initial = (m.username ?: m.email ?: "U").trim()
-                        .ifEmpty { "U" }.first().uppercaseChar().toString()
+                    val initial = (m.username ?: m.email ?: fallbackInitial).trim()
+                        .ifEmpty { fallbackInitial }.first().uppercaseChar().toString()
 
                     Box(
                         modifier = Modifier
@@ -143,7 +150,7 @@ private fun MembersList(
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(
-                            m.username ?: "—",
+                            m.username ?: fallbackDash,
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 color = TextPri,
                                 fontWeight = FontWeight.SemiBold
@@ -160,7 +167,7 @@ private fun MembersList(
                     }
 
                     IconButton(onClick = { if (m.id != null) onDelete(m.id) }) {
-                        Icon(Icons.Rounded.Delete, contentDescription = "Eliminar", tint = Color(0xFFD32F2F))
+                        Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_members_cd_delete), tint = Color(0xFFD32F2F))
                     }
                 }
             }
@@ -188,22 +195,22 @@ private fun AddMemberDialog(
                     )
                     Spacer(Modifier.width(8.dp))
                 }
-                Text("Añadir")
+                Text(stringResource(R.string.rep_members_dialog_button_add))
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onCancel, enabled = !saving) {
-                Text("Cancelar")
+                Text(stringResource(R.string.rep_members_dialog_button_cancel))
             }
         },
-        title = { Text("Añadir miembro", color = TextPri) },
+        title = { Text(stringResource(R.string.rep_members_dialog_title), color = TextPri) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Ingresa el email del usuario que deseas añadir.", color = TextSec)
+                Text(stringResource(R.string.rep_members_dialog_subtitle), color = TextSec)
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.rep_members_dialog_label_email)) },
                     singleLine = true
                 )
             }
@@ -223,14 +230,14 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ups…", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
         Spacer(Modifier.height(8.dp))
         Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSec)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-        ) { Text("Reintentar") }
+        ) { Text(stringResource(R.string.common_retry)) }
     }
 }
 
@@ -243,15 +250,15 @@ private fun EmptyBox(onAdd: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Sin miembros", style = MaterialTheme.typography.titleLarge, color = TextPri)
+        Text(stringResource(R.string.rep_members_empty_title), style = MaterialTheme.typography.titleLarge, color = TextPri)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Aún no has agregado miembros a este hogar.",
+            stringResource(R.string.rep_members_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium, color = TextSec
         )
         Spacer(Modifier.height(16.dp))
         Button(onClick = onAdd, colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)) {
-            Text("Añadir el primero")
+            Text(stringResource(R.string.rep_members_empty_button))
         }
     }
 }
