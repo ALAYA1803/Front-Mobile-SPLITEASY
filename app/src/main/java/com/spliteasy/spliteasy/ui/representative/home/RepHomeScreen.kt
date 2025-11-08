@@ -195,7 +195,6 @@ private fun Hero(
                 Text(householdDesc, color = TextSecondary)
             }
 
-            // Pills de estado/moneda
             Spacer(Modifier.height(14.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,

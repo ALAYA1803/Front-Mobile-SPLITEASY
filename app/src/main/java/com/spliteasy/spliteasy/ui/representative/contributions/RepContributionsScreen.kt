@@ -383,7 +383,6 @@ private fun CreateContributionSheet(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // Bill dropdown
             ExposedDropdownMenuBox(expanded = billsOpen, onExpandedChange = { billsOpen = it }) {
                 OutlinedTextField(
                     value = ui.allBills.firstOrNull { it.id == ui.formBillId }?.description ?: "",

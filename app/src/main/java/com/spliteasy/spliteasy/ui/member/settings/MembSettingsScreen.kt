@@ -17,24 +17,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.graphics.SolidColor
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.imePadding
-
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.spliteasy.spliteasy.ui.settings.LanguageViewModel
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.material.icons.filled.ArrowDropDown
-
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val DangerColor  = Color(0xFFD32F2F)
@@ -59,11 +59,21 @@ fun MembSettingsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val langVm: LanguageViewModel = hiltViewModel()
+    val isRestarting by langVm.isRestarting.collectAsState()
+    val context = LocalContext.current
 
     fun showSnack(msg: String) {
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
             snackbar.showSnackbar(message = msg, withDismissAction = true)
+        }
+    }
+
+    LaunchedEffect(isRestarting) {
+        if (isRestarting) {
+            delay(350)
+            (context as? Activity)?.recreate()
         }
     }
 
@@ -231,6 +241,22 @@ fun MembSettingsScreen(
                 CircularProgressIndicator(color = BrandPrimary)
             }
         }
+        AnimatedVisibility(
+            visible = isRestarting,
+            enter = fadeIn(animationSpec = tween(300)),
+            exit = fadeOut(animationSpec = tween(300))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BgMain)
+                    .systemBarsPadding()
+                    .navigationBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = BrandPrimary)
+            }
+        }
 
         if (showDeleteDialog) {
             AlertDialog(
@@ -258,6 +284,7 @@ fun LanguageSwitchComponent(
     modifier: Modifier = Modifier,
     vm: LanguageViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val currentLang by vm.currentLanguageFlow.collectAsState(initial = "es")
     var expanded by remember { mutableStateOf(false) }
     Log.d("LanguageSetup", "[Composable] El componente se actualizó. Idioma actual del Flow: $currentLang")
@@ -280,11 +307,10 @@ fun LanguageSwitchComponent(
             )
         }
 
-        // El menú desplegable
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color(0xFF2D2D2D)) // Fondo oscuro
+            modifier = Modifier.background(Color(0xFF2D2D2D))
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.language_current_es), color = Color.White) },

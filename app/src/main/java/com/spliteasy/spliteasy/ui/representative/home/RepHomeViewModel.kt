@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.GroupsService
-// ¡LA LÍNEA QUE FALTABA!
 import com.spliteasy.spliteasy.data.remote.api.ExpensesService
 import com.spliteasy.spliteasy.data.remote.dto.BillDto
 import com.spliteasy.spliteasy.data.remote.dto.ContributionDto
@@ -92,8 +91,6 @@ class RepHomeViewModel @Inject constructor(
             }
         }
     }
-
-    // Aquí la función 'normalizedHouseholdId' que estaba faltando en el archivo
     private fun MemberDto.normalizedHouseholdId(): Long? {
         return this.householdId ?: this.household_id ?: this.household?.id
     }

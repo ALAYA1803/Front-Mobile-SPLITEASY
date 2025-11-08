@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.google.android.recaptcha.RecaptchaAction
-import com.spliteasy.spliteasy.R // 👈 AÑADIDO
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.core.RecaptchaHelper
 import com.spliteasy.spliteasy.data.remote.dto.LoginRequest
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
@@ -35,7 +35,6 @@ class LoginViewModel @Inject constructor(
     var phase by mutableStateOf(LoginPhase.IDLE)
         private set
 
-    // ❗️ LÓGICA DE ERROR MOVIDA DESDE LA PANTALLA
     private fun mapAuthError(e: String?): String? {
         if (e.isNullOrBlank()) return null
         val msg = e.lowercase()
@@ -44,12 +43,11 @@ class LoginViewModel @Inject constructor(
             "unable to resolve host" in msg || "failed to connect" in msg || "network" in msg ->
                 ctx.getString(R.string.login_vm_error_io)
             "timeout" in msg || "time-out" in msg ->
-                ctx.getString(R.string.login_vm_error_io) // Re-usamos el de IO
+                ctx.getString(R.string.login_vm_error_io)
             "401" in msg || "forbidden" in msg || "unauthorized" in msg ||
                     "contraseña incorrect" in msg || "usuario o contraseña" in msg || "invalid credential" in msg ->
                 ctx.getString(R.string.login_vm_error_401)
-            // ... (puedes añadir más mapeos si quieres)
-            else -> e // Devuelve el error original si no coincide
+            else -> e
         }
     }
 
@@ -70,7 +68,7 @@ class LoginViewModel @Inject constructor(
             if (captchaToken.isNullOrBlank()) {
                 loading = false
                 phase = LoginPhase.IDLE
-                error = getApplication<Application>().getString(R.string.login_vm_recaptcha_fail) // ❗️ CAMBIADO
+                error = getApplication<Application>().getString(R.string.login_vm_recaptcha_fail)
                 return null
             }
 
@@ -85,7 +83,6 @@ class LoginViewModel @Inject constructor(
             result.fold(
                 onSuccess = { pair -> pair.second },
                 onFailure = { t ->
-                    // ❗️ CAMBIADO (ahora usamos mapAuthError)
                     error = mapAuthError(extractNiceError(t))
                     Log.e("Login", "Error login: ${error ?: t.message}", t)
                     null
@@ -94,7 +91,6 @@ class LoginViewModel @Inject constructor(
         } catch (t: Throwable) {
             loading = false
             phase = LoginPhase.IDLE
-            // ❗️ CAMBIADO (ahora usamos mapAuthError)
             error = mapAuthError(extractNiceError(t))
             Log.e("Login", "Error login (catch): ${error ?: t.message}", t)
             null
@@ -105,7 +101,6 @@ class LoginViewModel @Inject constructor(
 
     private fun extractNiceError(t: Throwable): String {
         val ctx = getApplication<Application>()
-        // ❗️ CAMBIADO
         return when (t) {
             is HttpException -> {
                 if (t.code() == 401) ctx.getString(R.string.login_vm_error_401)
@@ -122,12 +117,10 @@ class LoginViewModel @Inject constructor(
         val raw = try { e.response()?.errorBody()?.string() } catch (_: Exception) { null }
         val pretty = raw?.let { tryParseRecaptchaAware(it) }
         val base = if (!pretty.isNullOrBlank()) pretty else (raw ?: "Error HTTP $code")
-        // ❗️ CAMBIADO
         return getApplication<Application>().getString(R.string.login_vm_error_http, code.toString(), base)
     }
 
     private fun tryParseRecaptchaAware(raw: String): String? {
-        // ... (Esta función se queda igual, no tiene strings de UI)
         return try {
             val jo = JSONObject(raw)
             if (jo.has("message")) {

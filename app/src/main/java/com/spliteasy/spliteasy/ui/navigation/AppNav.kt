@@ -73,7 +73,6 @@ fun AppNav(startDestination: String = Routes.LOGIN) {
             )
         }
 
-        // --- Recuperación de contraseña ---
         composable("auth/forgot-password") {
             ForgotPasswordScreen(
                 onBackToLogin = { nav.popBackStack() },

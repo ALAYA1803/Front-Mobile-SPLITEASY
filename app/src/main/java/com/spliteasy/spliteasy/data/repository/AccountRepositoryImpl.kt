@@ -1,6 +1,6 @@
 package com.spliteasy.spliteasy.data.repository
 
-import com.spliteasy.spliteasy.data.remote.api.*  // <-- aquí vive ProfileDto y AccountService
+import com.spliteasy.spliteasy.data.remote.api.*
 import com.spliteasy.spliteasy.domain.repository.AccountRepository
 import retrofit2.HttpException
 import javax.inject.Inject
