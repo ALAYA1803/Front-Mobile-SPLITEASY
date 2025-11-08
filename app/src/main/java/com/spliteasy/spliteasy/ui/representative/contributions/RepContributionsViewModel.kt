@@ -1,7 +1,7 @@
 package com.spliteasy.spliteasy.ui.representative.contributions
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.BillsService
@@ -76,10 +76,9 @@ data class RepContribUi(
     val reviewReceipts: List<PaymentReceiptDto> = emptyList()
 )
 
-
 @HiltViewModel
 class RepContributionsViewModel @Inject constructor(
-    app: Application,
+    private val app: Application,
     private val repo: RepresentativeRepository,
     private val billsApi: BillsService,
     private val usersApi: UsersService,
@@ -87,12 +86,10 @@ class RepContributionsViewModel @Inject constructor(
     private val mcApi: MemberContributionsService,
     private val receiptsApi: PaymentReceiptsService,
     private val hhMembersApi: HouseholdMembersService
-) : AndroidViewModel(app) {
+) : ViewModel() {
 
     private val _ui = MutableStateFlow(RepContribUi())
     val ui = _ui.asStateFlow()
-
-    private val app: Application = getApplication()
 
     fun load() = viewModelScope.launch {
         _ui.value = _ui.value.copy(loading = true, error = null)
@@ -101,16 +98,22 @@ class RepContributionsViewModel @Inject constructor(
             val households = repo.listAllHouseholds().getOrThrow()
             val myHouse = households.firstOrNull { it.representanteId == meId }
                 ?: run {
-                    _ui.value = _ui.value.copy(loading = false, error = app.getString(R.string.rep_contrib_vm_error_no_household))
+                    _ui.value = _ui.value.copy(
+                        loading = false,
+                        error = app.getString(R.string.rep_contrib_vm_error_no_household)
+                    )
                     return@launch
                 }
+
             val hhId = myHouse.id
             val allBills = runCatching { billsApi.listAll() }.getOrDefault(emptyList())
             val allUsers = runCatching { usersApi.list() }.getOrDefault(emptyList())
             val allContribs = runCatching { contribApi.listAll() }.getOrDefault(emptyList())
             val allMcs = runCatching { mcApi.listAll() }.getOrDefault(emptyList())
+
             val billsById: Map<Long, BillDto> = allBills.associateBy { it.id }
             val usersById = allUsers.associateBy { it.id }
+
             val memberLinks = runCatching { hhMembersApi.listByHousehold(hhId) }
                 .getOrElse {
                     runCatching { hhMembersApi.list() }.getOrDefault(emptyList())
@@ -119,7 +122,7 @@ class RepContributionsViewModel @Inject constructor(
 
             val membersLite: List<MemberLite> = memberLinks.map { link ->
                 val uId = link.userId ?: -1L
-                val uname = usersById[uId]?.username ?: app.getString(R.string.rep_contrib_vm_user_fallback, uId)
+                val uname = usersById[uId]?.username ?: "Usuario $uId"
                 MemberLite(
                     memberId = link.id,
                     userId = uId,
@@ -127,17 +130,26 @@ class RepContributionsViewModel @Inject constructor(
                     isRepresentative = (uId == myHouse.representanteId)
                 )
             }
+
             val memberByMemberId = membersLite.associateBy { it.memberId }
+            val memberByUserId = membersLite.associateBy { it.userId }
+
             val mine = allContribs.filter { it.householdId == hhId }
+
             val mcsByContrib: Map<Long, List<MemberContributionDto>> =
                 allMcs.groupBy { it.contributionId }
+
             val contribUi: List<ContributionUi> = mine.map { c ->
                 val cid = c.id
                 val mcs = mcsByContrib[cid] ?: emptyList()
 
                 val details: List<ContributionDetailUi> = mcs.map { mc ->
-                    val member = memberByMemberId[mc.memberId]
-                    val displayName = member?.username ?: app.getString(R.string.rep_contrib_vm_member_fallback, mc.memberId)
+                    val rawId = mc.memberId
+                    val member = rawId?.let {
+                        memberByMemberId[it] ?: memberByUserId[it]
+                    }
+
+                    val displayName = member?.username ?: "Miembro #${mc.memberId}"
                     val role = if (member?.isRepresentative == true) "REPRESENTANTE" else "MIEMBRO"
 
                     ContributionDetailUi(
@@ -168,6 +180,7 @@ class RepContributionsViewModel @Inject constructor(
                     details = details
                 )
             }.sortedBy { it.fechaLimite ?: "" }
+
             val withCounts = contribUi.map { cu ->
                 val updatedDetails = cu.details.map { d ->
                     val receipts = runCatching { receiptsApi.list(d.id) }.getOrDefault(emptyList())
@@ -187,15 +200,21 @@ class RepContributionsViewModel @Inject constructor(
                 allMembers = membersLite
             )
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(loading = false, error = t.message ?: app.getString(R.string.rep_contrib_vm_error_load_fail))
+            _ui.value = _ui.value.copy(
+                loading = false,
+                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_load_fail)
+            )
         }
     }
 
     fun toggleExpanded(id: Long) {
         _ui.value = _ui.value.copy(
-            contributions = _ui.value.contributions.map { if (it.id == id) it.copy(expanded = !it.expanded) else it }
+            contributions = _ui.value.contributions.map {
+                if (it.id == id) it.copy(expanded = !it.expanded) else it
+            }
         )
     }
+
     fun openForm() {
         _ui.value = _ui.value.copy(
             formVisible = true,
@@ -207,12 +226,30 @@ class RepContributionsViewModel @Inject constructor(
             formSelectedMembers = emptySet()
         )
     }
-    fun closeForm() { _ui.value = _ui.value.copy(formVisible = false, editingId = null) }
 
-    fun onBill(v: Long?) { _ui.value = _ui.value.copy(formBillId = v) }
-    fun onDesc(v: String) { _ui.value = _ui.value.copy(formDescription = v) }
-    fun onDate(v: String) { _ui.value = _ui.value.copy(formFechaLimite = v) }
-    fun onStrategy(v: String) { _ui.value = _ui.value.copy(formStrategy = v) }
+    fun closeForm() {
+        _ui.value = _ui.value.copy(
+            formVisible = false,
+            editingId = null
+        )
+    }
+
+    fun onBill(v: Long?) {
+        _ui.value = _ui.value.copy(formBillId = v)
+    }
+
+    fun onDesc(v: String) {
+        _ui.value = _ui.value.copy(formDescription = v)
+    }
+
+    fun onDate(v: String) {
+        _ui.value = _ui.value.copy(formFechaLimite = v)
+    }
+
+    fun onStrategy(v: String) {
+        _ui.value = _ui.value.copy(formStrategy = v)
+    }
+
     fun toggleMember(memberId: Long) {
         val set = _ui.value.formSelectedMembers.toMutableSet()
         if (!set.add(memberId)) set.remove(memberId)
@@ -228,7 +265,9 @@ class RepContributionsViewModel @Inject constructor(
         val members = _ui.value.formSelectedMembers.toList()
 
         if (bill == null || desc.isBlank() || date.isBlank() || members.isEmpty()) {
-            _ui.value = _ui.value.copy(error = app.getString(R.string.rep_contrib_vm_error_form_invalid))
+            _ui.value = _ui.value.copy(
+                error = app.getString(R.string.rep_contrib_vm_error_form_invalid)
+            )
             return@launch
         }
 
@@ -246,9 +285,12 @@ class RepContributionsViewModel @Inject constructor(
             closeForm()
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_create_fail))
+            _ui.value = _ui.value.copy(
+                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_create_fail)
+            )
         }
     }
+
     fun openReview(detail: ContributionDetailUi) {
         _ui.value = _ui.value.copy(
             reviewVisible = true,
@@ -258,7 +300,10 @@ class RepContributionsViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val list = runCatching { receiptsApi.list(detail.id) }.getOrDefault(emptyList())
-            _ui.value = _ui.value.copy(reviewLoading = false, reviewReceipts = list)
+            _ui.value = _ui.value.copy(
+                reviewLoading = false,
+                reviewReceipts = list
+            )
         }
     }
 
@@ -307,7 +352,9 @@ class RepContributionsViewModel @Inject constructor(
             contribApi.delete(id)
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_delete_fail))
+            _ui.value = _ui.value.copy(
+                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_delete_fail)
+            )
         }
     }
 
@@ -326,7 +373,10 @@ class RepContributionsViewModel @Inject constructor(
         else -> "PENDIENTE"
     }
 }
+
 private fun Any.normalizedHouseholdId(): Long? = try {
     val k = this::class.members.firstOrNull { it.name in setOf("householdId", "household_id") }
     (k?.call(this) as? Long)
-} catch (_: Throwable) { null }
+} catch (_: Throwable) {
+    null
+}
