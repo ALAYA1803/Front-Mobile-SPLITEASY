@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import com.google.android.recaptcha.RecaptchaAction
+import com.spliteasy.spliteasy.R // 👈 AÑADIDO
 import com.spliteasy.spliteasy.core.RecaptchaHelper
 import com.spliteasy.spliteasy.data.remote.dto.LoginRequest
 import com.spliteasy.spliteasy.domain.repository.AuthRepository
@@ -29,12 +30,28 @@ class LoginViewModel @Inject constructor(
 
     var loading by mutableStateOf(false)
         private set
-
     var error by mutableStateOf<String?>(null)
         private set
-
     var phase by mutableStateOf(LoginPhase.IDLE)
         private set
+
+    // ❗️ LÓGICA DE ERROR MOVIDA DESDE LA PANTALLA
+    private fun mapAuthError(e: String?): String? {
+        if (e.isNullOrBlank()) return null
+        val msg = e.lowercase()
+        val ctx = getApplication<Application>()
+        return when {
+            "unable to resolve host" in msg || "failed to connect" in msg || "network" in msg ->
+                ctx.getString(R.string.login_vm_error_io)
+            "timeout" in msg || "time-out" in msg ->
+                ctx.getString(R.string.login_vm_error_io) // Re-usamos el de IO
+            "401" in msg || "forbidden" in msg || "unauthorized" in msg ||
+                    "contraseña incorrect" in msg || "usuario o contraseña" in msg || "invalid credential" in msg ->
+                ctx.getString(R.string.login_vm_error_401)
+            // ... (puedes añadir más mapeos si quieres)
+            else -> e // Devuelve el error original si no coincide
+        }
+    }
 
     suspend fun login(username: String, password: String): Boolean? {
         loading = true
@@ -53,7 +70,7 @@ class LoginViewModel @Inject constructor(
             if (captchaToken.isNullOrBlank()) {
                 loading = false
                 phase = LoginPhase.IDLE
-                error = "No se pudo verificar reCAPTCHA. Inténtalo de nuevo."
+                error = getApplication<Application>().getString(R.string.login_vm_recaptcha_fail) // ❗️ CAMBIADO
                 return null
             }
 
@@ -68,7 +85,8 @@ class LoginViewModel @Inject constructor(
             result.fold(
                 onSuccess = { pair -> pair.second },
                 onFailure = { t ->
-                    error = extractNiceError(t)
+                    // ❗️ CAMBIADO (ahora usamos mapAuthError)
+                    error = mapAuthError(extractNiceError(t))
                     Log.e("Login", "Error login: ${error ?: t.message}", t)
                     null
                 }
@@ -76,7 +94,8 @@ class LoginViewModel @Inject constructor(
         } catch (t: Throwable) {
             loading = false
             phase = LoginPhase.IDLE
-            error = extractNiceError(t)
+            // ❗️ CAMBIADO (ahora usamos mapAuthError)
+            error = mapAuthError(extractNiceError(t))
             Log.e("Login", "Error login (catch): ${error ?: t.message}", t)
             null
         }
@@ -85,14 +104,16 @@ class LoginViewModel @Inject constructor(
     fun clearError() { error = null }
 
     private fun extractNiceError(t: Throwable): String {
+        val ctx = getApplication<Application>()
+        // ❗️ CAMBIADO
         return when (t) {
             is HttpException -> {
-                if (t.code() == 401) "Usuario o contraseña incorrectos."
+                if (t.code() == 401) ctx.getString(R.string.login_vm_error_401)
                 else parseHttpError(t)
             }
-            is IOException -> "Sin conexión o tiempo de espera agotado. Verifica tu internet."
-            is SSLException -> "Error de seguridad (SSL). Intenta de nuevo o revisa tu red."
-            else -> t.message ?: "Ocurrió un error inesperado."
+            is IOException -> ctx.getString(R.string.login_vm_error_io)
+            is SSLException -> ctx.getString(R.string.login_vm_error_ssl)
+            else -> t.message ?: ctx.getString(R.string.login_vm_error_unknown)
         }
     }
 
@@ -101,10 +122,12 @@ class LoginViewModel @Inject constructor(
         val raw = try { e.response()?.errorBody()?.string() } catch (_: Exception) { null }
         val pretty = raw?.let { tryParseRecaptchaAware(it) }
         val base = if (!pretty.isNullOrBlank()) pretty else (raw ?: "Error HTTP $code")
-        return "HTTP $code: $base"
+        // ❗️ CAMBIADO
+        return getApplication<Application>().getString(R.string.login_vm_error_http, code.toString(), base)
     }
 
     private fun tryParseRecaptchaAware(raw: String): String? {
+        // ... (Esta función se queda igual, no tiene strings de UI)
         return try {
             val jo = JSONObject(raw)
             if (jo.has("message")) {

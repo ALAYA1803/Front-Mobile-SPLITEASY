@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SplitEasy</string>
+    <string name="forgot_password_back_cd">Back</string>
+    <string name="forgot_password_title">Recover account</string>
+    <string name="forgot_password_card_title">Email verification</string>
+    <string name="forgot_password_card_subtitle">Enter the email address associated with your account.</string>
+    <string name="forgot_password_email_label">Email</string>
+    <string name="forgot_password_email_placeholder">user@example.com</string>
+    <string name="forgot_password_button_loading">Validating...</string>
+    <string name="forgot_password_button_submit">Continue</string>
+    <string name="forgot_password_prompt_login">Already have your password?</string>
+    <string name="forgot_password_prompt_login_link">Log in</string>
+
+    <string name="forgot_password_error_invalid_email">Please enter a valid email.</string>
+    <string name="forgot_password_success_default">If the email exists, we will send instructions.</string>
+    <string name="forgot_password_error_api">An error occurred. Please try again.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Manage your profile and security</string>
+    <string name="settings_profile_title">Profile</string>
+    <string name="settings_profile_subtitle">Update your name and email</string>
+    <string name="settings_profile_name">Name</string>
+    <string name="settings_profile_email">Email</string>
+    <string name="settings_profile_save">Save changes</string>
+    <string name="settings_security_title">Security</string>
+    <string name="settings_security_subtitle">Change your password</string>
+    <string name="settings_security_current_pass">Current password</string>
+    <string name="settings_security_new_pass">New password</string>
+    <string name="settings_security_confirm_pass">Confirm password</string>
+    <string name="settings_security_pass_mismatch">Passwords do not match</string>
+    <string name="settings_security_save">Change password</string>
+    <string name="settings_danger_title">Danger Zone</string>
+    <string name="settings_danger_subtitle">Irreversible actions</string>
+    <string name="settings_danger_desc">Deleting your account will permanently erase your data.</string>
+    <string name="settings_danger_delete_account">Delete account</string>
+    <string name="settings_logout">Log out</string>
+    <string name="settings_dialog_delete_title">Delete account</string>
+    <string name="settings_dialog_delete_text">Are you sure you want to delete your account? This action is irreversible.</string>
+    <string name="settings_dialog_delete_confirm">Delete</string>
+    <string name="settings_dialog_delete_cancel">Cancel</string>
+
+    <string name="settings_vm_profile_load_error">Could not load profile.</string>
+    <string name="settings_vm_profile_update_success">Profile updated successfully.</string>
+    <string name="settings_vm_profile_update_error">Could not update profile.</string>
+    <string name="settings_vm_pass_min_length">New password must be at least 8 characters.</string>
+    <string name="settings_vm_pass_change_success">Password changed successfully.</string>
+    <string name="settings_vm_pass_change_error">Could not change password.</string>
+    <string name="settings_vm_delete_error">Could not delete account.</string>
+    <string name="language_switch_es">Spanish</string>
+    <string name="language_switch_en">English</string>
+
+    <string name="language_current_es">ES 🇪🇸</string>
+    <string name="language_current_en">EN 🇬🇧</string>
+    <string name="language_select">Select language</string>
+
+    <string name="login_vm_recaptcha_fail">Couldn\'t verify reCAPTCHA. Please try again.</string>
+    <string name="login_vm_error_401">Incorrect username or password.</string>
+    <string name="login_vm_error_io">No connection or timeout. Check your internet.</string>
+    <string name="login_vm_error_ssl">Security error (SSL). Try again or check your network.</string>
+    <string name="login_vm_error_unknown">An unexpected error occurred.</string>
+    <string name="login_vm_error_http">HTTP Error %1$s: %2$s</string>
+
+    <string name="login_logo_cd">SplitEasy Logo</string>
+    <string name="login_subtitle">Split expenses without the headaches.</string>
+    <string name="login_card_title">Login</string>
+    <string name="login_card_no_account">Don\'t have an account?</string>
+    <string name="login_card_create_account">Create account</string>
+    <string name="login_label_username">Username</string>
+    <string name="login_error_username_empty">Please enter your username.</string>
+    <string name="login_error_credentials_invalid">Incorrect username or password.</string>
+    <string name="login_label_password">Password</string>
+    <string name="login_pass_show">Show</string>
+    <string name="login_pass_hide">Hide</string>
+    <string name="login_error_password_empty">Please enter your password.</string>
+    <string name="login_forgot_password">Forgot your password?</string>
+    <string name="login_recaptcha_verifying">Protected by reCAPTCHA • verifying…</string>
+    <string name="login_button_verifying_recaptcha">Verifying reCAPTCHA…</string>
+    <string name="login_button_signing_in">Checking credentials…</string>
+    <string name="login_button_processing">Processing…</string>
+    <string name="login_button_login">Login</string>
+
+    <string name="login_component_welcome_title">Welcome back!</string>
+    <string name="login_component_welcome_subtitle">Split expenses without the headaches. Log in to continue.</string>
+    <string name="login_component_close">Close</string>
+</resources>

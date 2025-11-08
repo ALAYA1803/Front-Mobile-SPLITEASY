@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.member.settings
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.domain.repository.AccountRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,9 +22,10 @@ data class SettingsUi(
 
 @HiltViewModel
 class MembSettingsViewModel @Inject constructor(
+    app: Application,
     private val repo: AccountRepository,
     private val tokenStore: TokenDataStore
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow(SettingsUi(isLoading = true))
     val ui = _ui.asStateFlow()
@@ -34,11 +37,11 @@ class MembSettingsViewModel @Inject constructor(
             val result = repo.me()
             val me = result.getOrNull()
             if (me == null) {
-                val msg = result.exceptionOrNull()?.message ?: "No se pudo cargar el perfil."
+                val msg = result.exceptionOrNull()?.message
+                    ?: getApplication<Application>().getString(R.string.settings_vm_profile_load_error)
                 _ui.value = SettingsUi(isLoading = false, msg = msg)
                 return@launch
             }
-
             _ui.value = SettingsUi(
                 isLoading = false,
                 name = me.username.orEmpty(),
@@ -60,35 +63,59 @@ class MembSettingsViewModel @Inject constructor(
         val (name, email) = _ui.value.let { it.name to it.email }
         viewModelScope.launch {
             _ui.value = _ui.value.copy(isLoading = true, msg = null)
-            val ok = repo.updateProfile(name, email).isSuccess
+            val result = repo.updateProfile(name, email)
+            val ok = result.isSuccess
             _ui.value = _ui.value.copy(isLoading = false)
-            onDone(ok, if (ok) "Perfil actualizado correctamente." else "No se pudo actualizar el perfil.")
+            val msg = if (ok) {
+                getApplication<Application>().getString(R.string.settings_vm_profile_update_success)
+            } else {
+                result.exceptionOrNull()?.message
+                    ?: getApplication<Application>().getString(R.string.settings_vm_profile_update_error)
+            }
+            onDone(ok, msg)
             if (ok) load()
         }
     }
 
-    fun changePassword(current: String, new: String, onDone: (Boolean, String) -> Unit) {
+    fun changePassword(current: String, new: String, confirm: String, onDone: (Boolean, String) -> Unit) {
         if (new.length < 8) {
-            onDone(false, "La nueva contraseña debe tener al menos 8 caracteres.")
+            onDone(false, getApplication<Application>().getString(R.string.settings_vm_pass_min_length))
             return
         }
+        if (new != confirm) {
+            onDone(false, getApplication<Application>().getString(R.string.settings_security_pass_mismatch))
+            return
+        }
+
         viewModelScope.launch {
             _ui.value = _ui.value.copy(isLoading = true)
-            val ok = repo.changePassword(current, new).isSuccess
+            val result = repo.changePassword(current, new)
+            val ok = result.isSuccess
             _ui.value = _ui.value.copy(isLoading = false)
-            onDone(ok, if (ok) "Contraseña cambiada correctamente." else "No se pudo cambiar la contraseña.")
+            val msg = if (ok) {
+                getApplication<Application>().getString(R.string.settings_vm_pass_change_success)
+            } else {
+                result.exceptionOrNull()?.message
+                    ?: getApplication<Application>().getString(R.string.settings_vm_pass_change_error)
+            }
+            onDone(ok, msg)
         }
     }
 
     fun deleteAccount(onDeleted: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             _ui.value = _ui.value.copy(isLoading = true)
-            val ok = repo.deleteAccount().isSuccess
+            val result = repo.deleteAccount()
+            val ok = result.isSuccess
             _ui.value = _ui.value.copy(isLoading = false)
             if (ok) {
                 tokenStore.clear()
                 onDeleted()
-            } else onError("No se pudo eliminar la cuenta.")
+            } else {
+                val msg = result.exceptionOrNull()?.message
+                    ?: getApplication<Application>().getString(R.string.settings_vm_delete_error)
+                onError(msg)
+            }
         }
     }
 }

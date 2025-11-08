@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.SplitEasy" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SplitEasy" parent="Theme.AppCompat.Light.NoActionBar">
+
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowBackground">@color/window_background</item>
+
+        <item name="android:windowAnimationStyle">@style/WindowAnimationFade</item>
+
+    </style>
+
+    <style name="WindowAnimationFade" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/fade_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/fade_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/fade_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/fade_out</item>
+    </style>
+
 </resources>

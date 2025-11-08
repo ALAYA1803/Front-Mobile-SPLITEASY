@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.theme.*
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun BrandingColumn(
@@ -39,14 +40,14 @@ fun BrandingColumn(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = logo,
-                contentDescription = "SplitEasy Logo",
+                contentDescription = stringResource(R.string.login_logo_cd), // ❗️ CAMBIADO
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(12.dp))
             )
             Spacer(Modifier.width(12.dp))
             Text(
-                "SplitEasy",
+                stringResource(R.string.app_name), // ❗️ CAMBIADO (usa el nombre de la app)
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold
@@ -55,7 +56,7 @@ fun BrandingColumn(
         }
         Spacer(Modifier.height(24.dp))
         Text(
-            "¡Bienvenido de nuevo!",
+            stringResource(R.string.login_component_welcome_title), // ❗️ CAMBIADO
             style = MaterialTheme.typography.headlineLarge.copy(
                 color = Color.White,
                 fontWeight = FontWeight.ExtraBold
@@ -63,7 +64,7 @@ fun BrandingColumn(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Divide gastos sin dolor de cabeza. Inicia sesión para continuar.",
+            stringResource(R.string.login_component_welcome_subtitle), // ❗️ CAMBIADO
             style = MaterialTheme.typography.bodyLarge.copy(
                 color = Color.White.copy(alpha = 0.9f)
             ),
@@ -81,6 +82,8 @@ fun HeaderActions(onClose: () -> Unit) {
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // ... (Este AssistChip es un buen candidato para el botón de idioma,
+        // pero por ahora lo dejamos como estaba en tu original)
         AssistChip(
             onClick = { /* TODO: idioma */ },
             label = { Text("ES") },
@@ -97,7 +100,11 @@ fun HeaderActions(onClose: () -> Unit) {
                 containerColor = Color.Transparent
             )
         ) {
-            Icon(Icons.Default.Close, contentDescription = "Cerrar", tint = Color.White)
+            Icon(
+                Icons.Default.Close,
+                contentDescription = stringResource(R.string.login_component_close), // ❗️ CAMBIADO
+                tint = Color.White
+            )
         }
     }
 }

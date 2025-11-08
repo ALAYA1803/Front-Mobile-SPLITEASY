@@ -1,6 +1,5 @@
 package com.spliteasy.spliteasy.ui.auth
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -9,32 +8,33 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource // 👈 AÑADIDO
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.R
+import com.spliteasy.spliteasy.ui.member.settings.LanguageSwitchComponent // 👈 AÑADIDO
 import com.spliteasy.spliteasy.ui.theme.*
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 
 @Composable
 fun LoginScreen(
@@ -48,35 +48,21 @@ fun LoginScreen(
     var showPassword by remember { mutableStateOf(false) }
     var triedSubmit by remember { mutableStateOf(false) }
 
-    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    fun mapAuthError(e: String?): String? {
-        if (e.isNullOrBlank()) return null
-        val msg = e.lowercase()
-        return when {
-            "unable to resolve host" in msg || "failed to connect" in msg || "network" in msg ->
-                "Sin conexión. Verifica tu internet e inténtalo de nuevo."
-            "timeout" in msg || "time-out" in msg ->
-                "Tiempo de espera agotado. Reintenta en unos segundos."
-            "401" in msg || "forbidden" in msg || "unauthorized" in msg ||
-                    "contraseña incorrect" in msg || "usuario o contraseña" in msg || "invalid credential" in msg ->
-                "Usuario o contraseña incorrectos."
-            "429" in msg || "too many" in msg || "rate limit" in msg ->
-                "Demasiados intentos. Inténtalo nuevamente en unos minutos."
-            "500" in msg || "server" in msg || "internal" in msg ->
-                "Credenciales Erroneas."
-            else -> e
-        }
-    }
 
+    // ❗️ 'mapAuthError' HA SIDO ELIMINADO DE AQUÍ (el ViewModel lo hace)
+
+    // ❗️ LÓGICA DE SNACKBAR ACTUALIZADA
     LaunchedEffect(vm.error) {
-        mapAuthError(vm.error)?.let { msg ->
+        vm.error?.let { msg ->
             snackbarHostState.showSnackbar(message = msg, withDismissAction = true)
+            // vm.clearError() // Descomenta esto si no quieres que el error persista
         }
     }
 
-    val invalidCreds = mapAuthError(vm.error) == "Usuario o contraseña incorrectos."
+    // ❗️ LÓGICA DE ERRORES DE CAMPO ACTUALIZADA
+    val invalidCreds = vm.error == stringResource(R.string.login_vm_error_401)
     val usernameEmptyError = triedSubmit && username.isBlank()
     val passwordEmptyError = triedSubmit && password.isBlank()
 
@@ -88,21 +74,37 @@ fun LoginScreen(
                 .fillMaxSize()
                 .padding(inner)
                 .background(FormColumnBg)
-                .padding(horizontal = 20.dp, vertical = 24.dp)
+            // El padding principal se mueve a la Columna
         ) {
+
+            // --- ⬇️ BOTÓN DE IDIOMA POSICIONADO ⬇️ ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding() // Para que no se ponga bajo la barra de estado
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                LanguageSwitchComponent(
+                    modifier = Modifier.align(Alignment.TopEnd)
+                )
+            }
+            // --- ⬆️ FIN BOTÓN DE IDIOMA ⬆️ ---
+
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 24.dp), // Padding original
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "SplitEasy",
+                    contentDescription = stringResource(R.string.login_logo_cd), // ❗️ CAMBIADO
                     modifier = Modifier.size(84.dp)
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "SplitEasy",
+                    text = stringResource(R.string.app_name), // ❗️ CAMBIADO
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold
@@ -110,13 +112,13 @@ fun LoginScreen(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Divide gastos sin dolor de cabeza.",
+                    text = stringResource(R.string.login_subtitle), // ❗️ CAMBIADO
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color.White.copy(alpha = 0.9f)
                     )
                 )
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp)) // Espacio que ocupaba el botón viejo
 
                 Card(
                     modifier = Modifier
@@ -133,25 +135,23 @@ fun LoginScreen(
                             .padding(20.dp)
                     ) {
                         Text(
-                            "Iniciar sesión",
+                            stringResource(R.string.login_card_title), // ❗️ CAMBIADO
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
                         )
 
-                        val mappedError = mapAuthError(vm.error)
+                        // Muestra errores genéricos, no el de "credenciales inválidas"
                         AnimatedVisibility(
-                            visible = !mappedError.isNullOrBlank(),
+                            visible = vm.error != null && !invalidCreds,
                             enter = fadeIn(),
                             exit = fadeOut()
                         ) {
-                            if (!mappedError.isNullOrBlank()) {
+                            vm.error?.let { mappedError ->
                                 Surface(
                                     color = Color(0x26E53935),
                                     shape = RoundedCornerShape(10.dp),
-                                    tonalElevation = 0.dp,
-                                    shadowElevation = 0.dp,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(top = 10.dp)
@@ -167,7 +167,7 @@ fun LoginScreen(
                                         )
                                         Spacer(Modifier.width(8.dp))
                                         Text(
-                                            mappedError,
+                                            mappedError, // ❗️ VIENE TRADUCIDO DEL VM
                                             color = Color.White
                                         )
                                     }
@@ -178,12 +178,12 @@ fun LoginScreen(
                         Spacer(Modifier.height(6.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "¿No tienes cuenta?",
+                                stringResource(R.string.login_card_no_account), // ❗️ CAMBIADO
                                 style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "Crear cuenta",
+                                stringResource(R.string.login_card_create_account), // ❗️ CAMBIADO
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = BrandSecondary,
                                     fontWeight = FontWeight.Medium
@@ -195,7 +195,7 @@ fun LoginScreen(
                         Spacer(Modifier.height(16.dp))
 
                         Text(
-                            "Usuario",
+                            stringResource(R.string.login_label_username), // ❗️ CAMBIADO
                             color = Color.White,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                         )
@@ -213,8 +213,14 @@ fun LoginScreen(
                             isError = usernameEmptyError || invalidCreds,
                             supportingText = {
                                 when {
-                                    usernameEmptyError -> Text("Ingresa tu usuario.", color = MaterialTheme.colorScheme.error)
-                                    invalidCreds -> Text("Usuario o contraseña incorrectos.", color = MaterialTheme.colorScheme.error)
+                                    usernameEmptyError -> Text(
+                                        stringResource(R.string.login_error_username_empty), // ❗️ CAMBIADO
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                    invalidCreds -> Text(
+                                        stringResource(R.string.login_error_credentials_invalid), // ❗️ CAMBIADO
+                                        color = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -226,9 +232,7 @@ fun LoginScreen(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedLeadingIconColor = TextMuted,
-                                unfocusedLeadingIconColor = TextMuted,
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White
+                                unfocusedLeadingIconColor = TextMuted
                             ),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -239,7 +243,7 @@ fun LoginScreen(
                         Spacer(Modifier.height(14.dp))
 
                         Text(
-                            "Contraseña",
+                            stringResource(R.string.login_label_password), // ❗️ CAMBIADO
                             color = Color.White,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                         )
@@ -255,7 +259,11 @@ fun LoginScreen(
                             trailingIcon = {
                                 IconButton(onClick = { showPassword = !showPassword }) {
                                     val icon = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility
-                                    val label = if (showPassword) "Ocultar" else "Mostrar"
+                                    val label = if (showPassword) {
+                                        stringResource(R.string.login_pass_hide)
+                                    } else {
+                                        stringResource(R.string.login_pass_show)
+                                    }
                                     Icon(icon, contentDescription = label, tint = TextMuted)
                                 }
                             },
@@ -265,8 +273,14 @@ fun LoginScreen(
                             isError = passwordEmptyError || invalidCreds,
                             supportingText = {
                                 when {
-                                    passwordEmptyError -> Text("Ingresa tu contraseña.", color = MaterialTheme.colorScheme.error)
-                                    invalidCreds -> Text("Usuario o contraseña incorrectos.", color = MaterialTheme.colorScheme.error)
+                                    passwordEmptyError -> Text(
+                                        stringResource(R.string.login_error_password_empty),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                    invalidCreds -> Text(
+                                        stringResource(R.string.login_error_credentials_invalid),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -278,9 +292,7 @@ fun LoginScreen(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedLeadingIconColor = TextMuted,
-                                unfocusedLeadingIconColor = TextMuted,
-                                focusedLabelColor = Color.White,
-                                unfocusedLabelColor = Color.White
+                                unfocusedLeadingIconColor = TextMuted
                             ),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = if (showPassword) KeyboardType.Text else KeyboardType.Password,
@@ -301,7 +313,7 @@ fun LoginScreen(
                         Spacer(Modifier.height(10.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                             Text(
-                                text = "¿Olvidaste tu contraseña?",
+                                text = stringResource(R.string.login_forgot_password), // ❗️ CAMBIADO
                                 color = BrandSecondary,
                                 modifier = Modifier
                                     .padding(top = 8.dp)
@@ -332,7 +344,7 @@ fun LoginScreen(
                                     )
                                     Spacer(Modifier.width(10.dp))
                                     Text(
-                                        "Protegido por reCAPTCHA • verificando…",
+                                        stringResource(R.string.login_recaptcha_verifying), // ❗️ CAMBIADO
                                         color = Color.White
                                     )
                                 }
@@ -368,10 +380,11 @@ fun LoginScreen(
                                         color = Color.White
                                     )
                                     Spacer(Modifier.width(10.dp))
+                                    // ❗️ CAMBIADO
                                     val label = when (vm.phase) {
-                                        LoginPhase.CHECKING_RECAPTCHA -> "Verificando reCAPTCHA…"
-                                        LoginPhase.SIGNING_IN -> "Comprobando credenciales…"
-                                        else -> "Procesando…"
+                                        LoginPhase.CHECKING_RECAPTCHA -> stringResource(R.string.login_button_verifying_recaptcha)
+                                        LoginPhase.SIGNING_IN -> stringResource(R.string.login_button_signing_in)
+                                        else -> stringResource(R.string.login_button_processing)
                                     }
                                     Text(
                                         text = label,
@@ -380,7 +393,7 @@ fun LoginScreen(
                                 }
                             } else {
                                 Text(
-                                    text = "Ingresar",
+                                    text = stringResource(R.string.login_button_login), // ❗️ CAMBIADO
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                                 )
                             }

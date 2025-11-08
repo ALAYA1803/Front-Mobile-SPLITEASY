@@ -15,9 +15,12 @@ class TokenDataStore(private val context: Context) {
     private val KEY_ROLE  = stringPreferencesKey("role")
     private val KEY_USER_ID = stringPreferencesKey("user_id")
 
+    private val KEY_LANGUAGE = stringPreferencesKey("app_language")
+
     val tokenFlow = context.dataStore.data.map { it[KEY_TOKEN] }
     val roleFlow  = context.dataStore.data.map { it[KEY_ROLE]  }
 
+    val languageFlow = context.dataStore.data.map { it[KEY_LANGUAGE] ?: "es" }
     suspend fun saveToken(token: String) {
         context.dataStore.edit { prefs -> prefs[KEY_TOKEN] = token }
     }
@@ -36,6 +39,9 @@ class TokenDataStore(private val context: Context) {
     }
     suspend fun clear() {
         context.dataStore.edit { it.clear() }
+    }
+    suspend fun saveLanguage(lang: String) {
+        context.dataStore.edit { prefs -> prefs[KEY_LANGUAGE] = lang }
     }
 
     suspend fun saveActiveGroupId(id: Long) {

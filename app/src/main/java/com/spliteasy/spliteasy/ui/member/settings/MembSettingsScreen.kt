@@ -1,5 +1,7 @@
 package com.spliteasy.spliteasy.ui.member.settings
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +23,18 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.spliteasy.spliteasy.ui.settings.LanguageViewModel
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.ArrowDropDown
+
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val DangerColor  = Color(0xFFD32F2F)
@@ -68,23 +82,30 @@ fun MembSettingsScreen(
         ) {
             item {
                 Text(
-                    "Ajustes",
+                    stringResource(R.string.settings_title),
                     color = TextPri,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(Modifier.height(2.dp))
-                Text("Gestiona tu perfil y seguridad", color = TextSec, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.settings_subtitle),
+                    color = TextSec,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
-            // --- Perfil ---
             item {
                 SettingsCard {
-                    SectionHeader(icon = "👤", title = "Perfil", subtitle = "Actualiza tu nombre y correo")
+                    SectionHeader(
+                        icon = "👤",
+                        title = stringResource(R.string.settings_profile_title),
+                        subtitle = stringResource(R.string.settings_profile_subtitle)
+                    )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = ui.name,
                         onValueChange = vm::onNameChange,
-                        label = { Text("Nombre") },
+                        label = { Text(stringResource(R.string.settings_profile_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = fieldColors()
@@ -93,7 +114,7 @@ fun MembSettingsScreen(
                     OutlinedTextField(
                         value = ui.email,
                         onValueChange = vm::onEmailChange,
-                        label = { Text("Correo") },
+                        label = { Text(stringResource(R.string.settings_profile_email)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = fieldColors()
@@ -103,18 +124,22 @@ fun MembSettingsScreen(
                         onClick = { vm.saveProfile { _, msg -> showSnack(msg) } },
                         enabled = ui.canSubmitProfile && !ui.isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-                    ) { Text("Guardar cambios") }
+                    ) { Text(stringResource(R.string.settings_profile_save)) }
                 }
             }
 
             item {
                 SettingsCard {
-                    SectionHeader(icon = "🔒", title = "Seguridad", subtitle = "Cambia tu contraseña")
+                    SectionHeader(
+                        icon = "🔒",
+                        title = stringResource(R.string.settings_security_title),
+                        subtitle = stringResource(R.string.settings_security_subtitle)
+                    )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = currentPwd,
                         onValueChange = { currentPwd = it },
-                        label = { Text("Contraseña actual") },
+                        label = { Text(stringResource(R.string.settings_security_current_pass)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation(),
@@ -124,7 +149,7 @@ fun MembSettingsScreen(
                     OutlinedTextField(
                         value = newPwd,
                         onValueChange = { newPwd = it },
-                        label = { Text("Nueva contraseña") },
+                        label = { Text(stringResource(R.string.settings_security_new_pass)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation(),
@@ -134,53 +159,69 @@ fun MembSettingsScreen(
                     OutlinedTextField(
                         value = confirmPwd,
                         onValueChange = { confirmPwd = it },
-                        label = { Text("Confirmar contraseña") },
+                        label = { Text(stringResource(R.string.settings_security_confirm_pass)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation(),
                         supportingText = {
                             if (confirmPwd.isNotEmpty() && confirmPwd != newPwd)
-                                Text("Las contraseñas no coinciden", color = DangerColor)
+                                Text(
+                                    stringResource(R.string.settings_security_pass_mismatch),
+                                    color = DangerColor
+                                )
                         },
                         colors = fieldColors()
                     )
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
-                            if (newPwd != confirmPwd) {
-                                showSnack("Las contraseñas no coinciden")
-                            } else {
-                                vm.changePassword(currentPwd, newPwd) { ok, msg ->
-                                    showSnack(msg)
-                                    if (ok) { currentPwd = ""; newPwd = ""; confirmPwd = "" }
+                            vm.changePassword(currentPwd, newPwd, confirmPwd) { ok, msg ->
+                                showSnack(msg)
+                                if (ok) {
+                                    currentPwd = ""
+                                    newPwd = ""
+                                    confirmPwd = ""
                                 }
                             }
                         },
                         enabled = currentPwd.isNotBlank() && newPwd.isNotBlank() && confirmPwd.isNotBlank() && !ui.isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57C00))
-                    ) { Text("Cambiar contraseña") }
+                    ) { Text(stringResource(R.string.settings_security_save)) }
                 }
             }
 
             item {
                 SettingsCard(borderColor = DangerColor) {
-                    SectionHeader(icon = "⚠️", title = "Zona de peligro", subtitle = "Acciones irreversibles")
+                    SectionHeader(
+                        icon = "⚠️",
+                        title = stringResource(R.string.settings_danger_title),
+                        subtitle = stringResource(R.string.settings_danger_subtitle)
+                    )
                     Spacer(Modifier.height(8.dp))
-                    Text("Eliminar tu cuenta borrará definitivamente tus datos.", color = TextSec)
+                    Text(
+                        stringResource(R.string.settings_danger_desc),
+                        color = TextSec
+                    )
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { showDeleteDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = DangerColor)
-                    ) { Text("Eliminar cuenta") }
+                    ) { Text(stringResource(R.string.settings_danger_delete_account)) }
                 }
             }
-
+            item {
+                SettingsCard {
+                    SectionHeader(icon = "🌎", title = "Idioma", subtitle = "Selecciona tu idioma")
+                    Spacer(Modifier.height(12.dp))
+                    LanguageSwitchComponent()
+                }
+            }
             item {
                 OutlinedButton(
                     onClick = onLogout,
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPri),
                     border = ButtonDefaults.outlinedButtonBorder(enabled = true)
-                ) { Text("Cerrar sesión") }
+                ) { Text(stringResource(R.string.settings_logout)) }
             }
             item { Spacer(Modifier.height(100.dp)) }
         }
@@ -194,23 +235,76 @@ fun MembSettingsScreen(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Eliminar cuenta", color = TextPri) },
-                text = { Text("¿Seguro que deseas eliminar tu cuenta? Esta acción es irreversible.", color = TextSec) },
+                title = { Text(stringResource(R.string.settings_dialog_delete_title), color = TextPri) },
+                text = { Text(stringResource(R.string.settings_dialog_delete_text), color = TextSec) },
                 confirmButton = {
                     TextButton(onClick = {
                         showDeleteDialog = false
                         vm.deleteAccount(onDeleted = onDeleted) { msg -> showSnack(msg) }
-                    }) { Text("Eliminar", color = DangerColor) }
+                    }) { Text(stringResource(R.string.settings_dialog_delete_confirm), color = DangerColor) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar", color = TextPri) }
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(stringResource(R.string.settings_dialog_delete_cancel), color = TextPri)
+                    }
                 },
                 containerColor = BgCard
             )
         }
     }
 }
+@Composable
+fun LanguageSwitchComponent(
+    modifier: Modifier = Modifier,
+    vm: LanguageViewModel = hiltViewModel()
+) {
+    val currentLang by vm.currentLanguageFlow.collectAsState(initial = "es")
+    var expanded by remember { mutableStateOf(false) }
+    Log.d("LanguageSetup", "[Composable] El componente se actualizó. Idioma actual del Flow: $currentLang")
+    val buttonText = when (currentLang) {
+        "en" -> stringResource(R.string.language_current_en)
+        else -> stringResource(R.string.language_current_es)
+    }
 
+    Box(modifier = modifier) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(buttonText)
+            Icon(
+                Icons.Default.ArrowDropDown,
+                contentDescription = stringResource(R.string.language_select)
+            )
+        }
+
+        // El menú desplegable
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color(0xFF2D2D2D)) // Fondo oscuro
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.language_current_es), color = Color.White) },
+                onClick = {
+                    vm.setLanguage("es")
+                    expanded = false
+                },
+                enabled = currentLang != "es"
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.language_current_en), color = Color.White) },
+                onClick = {
+                    vm.setLanguage("en")
+                    expanded = false
+                },
+                enabled = currentLang != "en"
+            )
+        }
+    }
+}
 
 @Composable
 private fun SettingsCard(

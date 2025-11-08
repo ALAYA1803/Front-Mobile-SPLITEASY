@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 
 private val BrandPrimary = Color(0xFF1565C0)
@@ -65,13 +67,13 @@ fun ForgotPasswordScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
+                        contentDescription = stringResource(R.string.forgot_password_back_cd),
                         tint = TextSec
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Recuperar cuenta",
+                    text = stringResource(R.string.forgot_password_title),
                     style = MaterialTheme.typography.titleLarge.copy(
                         color = TextPri,
                         fontWeight = FontWeight.SemiBold,
@@ -94,18 +96,18 @@ fun ForgotPasswordScreen(
                         .padding(28.dp)
                 ) {
                     Text(
-                        "Verificación de correo",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            color = TextPri,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        )
+                    stringResource(R.string.forgot_password_card_title),
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = TextPri,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
                     )
+                )
 
                     Spacer(Modifier.height(8.dp))
 
                     Text(
-                        "Ingresa el correo electrónico asociado a tu cuenta.",
+                        stringResource(R.string.forgot_password_card_subtitle),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = TextSec,
                             fontSize = 14.sp,
@@ -116,7 +118,7 @@ fun ForgotPasswordScreen(
                     Spacer(Modifier.height(32.dp))
 
                     Text(
-                        "Correo electrónico",
+                        stringResource(R.string.forgot_password_email_label),
                         color = TextPri,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium,
@@ -131,7 +133,7 @@ fun ForgotPasswordScreen(
                         singleLine = true,
                         placeholder = {
                             Text(
-                                "usuario@ejemplo.com",
+                                stringResource(R.string.forgot_password_email_placeholder),
                                 color = TextSec.copy(alpha = 0.6f),
                                 fontSize = 15.sp
                             )
@@ -222,8 +224,13 @@ fun ForgotPasswordScreen(
                             pressedElevation = 0.dp
                         )
                     ) {
+                        val buttonText = if (loading) {
+                            stringResource(R.string.forgot_password_button_loading)
+                        } else {
+                            stringResource(R.string.forgot_password_button_submit)
+                        }
                         Text(
-                            text = if (loading) "Validando..." else "Continuar",
+                            text = buttonText,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 16.sp
@@ -247,14 +254,14 @@ fun ForgotPasswordScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "¿Ya tienes tu contraseña? ",
+                            text = stringResource(R.string.forgot_password_prompt_login),
                             color = TextSec,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontSize = 14.sp
                             )
                         )
                         Text(
-                            text = "Iniciar sesión",
+                            text = stringResource(R.string.forgot_password_prompt_login_link),
                             color = BrandPrimary,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
