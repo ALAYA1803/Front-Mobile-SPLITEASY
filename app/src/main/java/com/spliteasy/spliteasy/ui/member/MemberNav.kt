@@ -35,6 +35,9 @@ import androidx.navigation.compose.rememberNavController
 import com.spliteasy.spliteasy.ui.member.contribs.MembContribsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
+import androidx.compose.ui.graphics.vector.ImageVector
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val BgMain       = Color(0xFF1A1A1A)
@@ -45,14 +48,15 @@ private val TextSec      = Color(0xFFADB5BD)
 
 sealed class MemberDest(
     val route: String,
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val label: @Composable () -> String,
+    val icon: ImageVector
 ) {
-    data object Home          : MemberDest("member/home",          "Inicio",         Icons.Rounded.Home)
-    data object Contributions : MemberDest("member/contributions", "Contribuciones", Icons.Rounded.Wallet)
-    data object Status        : MemberDest("member/status",        "Estado",         Icons.Rounded.Assessment)
-    data object Settings      : MemberDest("member/settings",      "Ajustes",        Icons.Rounded.Settings)
+    data object Home          : MemberDest("member/home",          { stringResource(R.string.member_nav_tab_home) },     Icons.Rounded.Home)
+    data object Contributions : MemberDest("member/contributions", { stringResource(R.string.member_nav_tab_contribs) }, Icons.Rounded.Wallet)
+    data object Status        : MemberDest("member/status",        { stringResource(R.string.member_nav_tab_status) },    Icons.Rounded.Assessment)
+    data object Settings      : MemberDest("member/settings",      { stringResource(R.string.member_nav_tab_settings) },  Icons.Rounded.Settings)
 }
+
 private val memberTabs = listOf(
     MemberDest.Home, MemberDest.Contributions, MemberDest.Status, MemberDest.Settings
 )
@@ -68,10 +72,13 @@ fun MemberNavRoot(
     val homeState by homeVm.uiState.collectAsState()
     LaunchedEffect(Unit) { homeVm.load() }
 
-    val currentUserName = remember(homeState) {
-        (homeState as? MemberHomeUiState.Ready)?.currentUserName ?: "Usuario"
+    val fallbackUsername = stringResource(R.string.common_user_fallback)
+    val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
+
+    val currentUserName = remember(homeState, fallbackUsername) {
+        (homeState as? MemberHomeUiState.Ready)?.currentUserName ?: fallbackUsername
     }
-    val initial = currentUserName.trim().ifBlank { "U" }.first().uppercaseChar().toString()
+    val initial = currentUserName.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
 
     val currentUserId: Long? = (homeState as? MemberHomeUiState.Ready)?.currentUserId
 
@@ -81,8 +88,8 @@ fun MemberNavRoot(
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             MemberTopBar(
-                title = "SpliteEasy",
-                subtitle = "Panel de Miembro",
+                title = stringResource(R.string.member_nav_app_name),
+                subtitle = stringResource(R.string.member_nav_title),
                 initial = initial,
                 username = currentUserName,
                 onLogout = onLogout
@@ -113,7 +120,7 @@ fun MemberNavRoot(
                         MembContribsScreen(currentUserId = currentUserId)
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Cargando usuario…", color = TextSec)
+                            Text(stringResource(R.string.member_nav_loading_user), color = TextSec)
                         }
                     }
                 }
@@ -181,7 +188,7 @@ private fun MemberTopBar(
             IconButton(onClick = onLogout) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Logout,
-                    contentDescription = "Cerrar sesión",
+                    contentDescription = stringResource(R.string.member_nav_cd_logout),
                     tint = TextPri
                 )
             }
@@ -206,6 +213,8 @@ private fun MemberBottomBar(
     ) {
         tabs.forEach { dest ->
             val selected = currentRoute == dest.route
+            val labelText = dest.label()
+
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -220,13 +229,13 @@ private fun MemberBottomBar(
                 icon = {
                     Icon(
                         imageVector = dest.icon,
-                        contentDescription = dest.label,
+                        contentDescription = labelText,
                         tint = if (selected) BrandPrimary else TextSec
                     )
                 },
                 label = {
                     Text(
-                        text = dest.label,
+                        text = labelText,
                         color = if (selected) TextPri else TextSec,
                         maxLines = 1
                     )

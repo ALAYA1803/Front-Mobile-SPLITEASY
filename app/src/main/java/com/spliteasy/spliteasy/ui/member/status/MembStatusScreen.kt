@@ -25,6 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary   = Color(0xFF1565C0)
 private val SuccessColor   = Color(0xFF2E7D32)
@@ -50,11 +52,11 @@ fun MembStatusScreen(vm: MembStatusViewModel = hiltViewModel()) {
                 CircularProgressIndicator(color = BrandPrimary)
             }
             is StatusUiState.Error -> StatusMessage(
-                title = "Error",
+                title = stringResource(R.string.common_empty_title),
                 message = s.message
             )
             is StatusUiState.Empty -> StatusMessage(
-                title = "Sin datos",
+                title = stringResource(R.string.common_empty_title),
                 message = s.reason
             )
             is StatusUiState.Ready -> StatusList(rows = s.rows)
@@ -74,13 +76,13 @@ private fun StatusList(rows: List<StatusRowUi>) {
     ) {
         item {
             Text(
-                "Contribuciones Pagadas",
+                stringResource(R.string.memb_status_title),
                 color = TextPri,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "Historial de pagos realizados",
+                stringResource(R.string.memb_status_subtitle),
                 color = TextSec,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -99,7 +101,7 @@ private fun StatusList(rows: List<StatusRowUi>) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "No hay pagos registrados.",
+                        stringResource(R.string.memb_status_empty_list),
                         color = TextSec,
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -121,9 +123,9 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val (badgeBg, badgeFg, badgeText) = when (row.statusUi) {
-                    "PAGADO"      -> Triple(SuccessColor.copy(alpha = .15f), SuccessColor, "Pagado")
-                    "EN_REVISION" -> Triple(WarningColor.copy(alpha = .15f), WarningColor, "En revisión")
-                    else          -> Triple(BrandPrimary.copy(alpha = .15f), BrandPrimary, "Pendiente")
+                    "PAGADO"      -> Triple(SuccessColor.copy(alpha = .15f), SuccessColor, stringResource(R.string.memb_status_status_paid))
+                    "EN_REVISION" -> Triple(WarningColor.copy(alpha = .15f), WarningColor, stringResource(R.string.memb_status_status_review))
+                    else          -> Triple(BrandPrimary.copy(alpha = .15f), BrandPrimary, stringResource(R.string.memb_status_status_pending))
                 }
 
                 Box(
@@ -138,7 +140,7 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
                 Spacer(Modifier.width(12.dp))
 
                 Text(
-                    text = row.descripcionFactura ?: "Factura",
+                    text = row.descripcionFactura ?: stringResource(R.string.memb_status_fallback_bill_desc),
                     color = TextPri,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
@@ -157,11 +159,14 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
             Spacer(Modifier.height(8.dp))
             Divider(color = Border, thickness = 1.dp)
             Spacer(Modifier.height(8.dp))
-            InfoRow("Descripción", row.descripcionContrib ?: "—")
-            InfoRow("Estrategia", strategyLabel(row.strategy))
-            InfoRow("Fecha factura", row.fechaFactura?.let { friendlyDate(it) } ?: "—")
-            InfoRow("Fecha límite", row.fechaLimite?.let { friendlyDate(it) } ?: "—")
-            InfoRow("Pagado en", row.pagadoEn?.let { friendlyDateTime(it) } ?: "—")
+
+            val fallbackDash = stringResource(R.string.common_fallback_dash)
+
+            InfoRow(stringResource(R.string.memb_status_label_description), row.descripcionContrib ?: fallbackDash)
+            InfoRow(stringResource(R.string.memb_status_label_strategy), strategyLabel(row.strategy))
+            InfoRow(stringResource(R.string.memb_status_label_bill_date), row.fechaFactura?.let { friendlyDate(it) } ?: fallbackDash)
+            InfoRow(stringResource(R.string.memb_status_label_due_date), row.fechaLimite?.let { friendlyDate(it) } ?: fallbackDash)
+            InfoRow(stringResource(R.string.memb_status_label_paid_at), row.pagadoEn?.let { friendlyDateTime(it) } ?: fallbackDash)
         }
     }
 }
@@ -198,11 +203,12 @@ private fun currencyFormatter(code: String): NumberFormat =
         minimumFractionDigits = 2
     }
 
+@Composable
 private fun strategyLabel(s: String?): String =
     when (s?.uppercase()) {
-        "EQUAL"         -> "Partes iguales"
-        "INCOME_BASED"  -> "Según ingresos"
-        else            -> s ?: "—"
+        "EQUAL"         -> stringResource(R.string.memb_status_strategy_equal)
+        "INCOME_BASED"  -> stringResource(R.string.memb_status_strategy_income)
+        else            -> s ?: stringResource(R.string.common_fallback_dash)
     }
 
 private fun friendlyDate(input: String): String =

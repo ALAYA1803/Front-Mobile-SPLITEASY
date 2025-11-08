@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.member.contribs
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
 import com.spliteasy.spliteasy.domain.repository.MemberRepository
@@ -35,8 +37,9 @@ sealed interface ContribsUiState {
 
 @HiltViewModel
 class MembContribsViewModel @Inject constructor(
+    app: Application,
     private val repo: MemberRepository
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow<ContribsUiState>(ContribsUiState.Loading)
     val ui = _ui.asStateFlow()
@@ -45,14 +48,16 @@ class MembContribsViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.value = ContribsUiState.Loading
 
+            val app = getApplication<Application>()
+
             val hh = repo.findMyHouseholdByScanning(currentUserId).getOrNull()
             if (hh == null) {
-                _ui.value = ContribsUiState.Error("No perteneces a ningún hogar.")
+                _ui.value = ContribsUiState.Error(app.getString(R.string.memb_contribs_vm_error_no_household))
                 return@launch
             }
 
             val mcs = repo.listMyMemberContributions(currentUserId, hh.id).getOrElse {
-                _ui.value = ContribsUiState.Error(it.message ?: "Error listando contribuciones")
+                _ui.value = ContribsUiState.Error(it.message ?: app.getString(R.string.memb_contribs_vm_error_list_contribs))
                 return@launch
             }
 
@@ -64,6 +69,7 @@ class MembContribsViewModel @Inject constructor(
                         val receipts = repo.listReceipts(mc.id).getOrElse { emptyList() }
                         val hasPendingReceipt = receipts.any { it.status.equals("PENDING", true) }
 
+                        // Los "keys" de estado se quedan en el ViewModel
                         val statusUi = when {
                             mc.status.equals("PAID", true) || mc.status.equals("PAGADO", true) -> "PAGADO"
                             hasPendingReceipt -> "EN_REVISION"

@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
+
 private val BrandPrimary = Color(0xFF1565C0)
 private val BgMain       = Color(0xFF1A1A1A)
 private val CardBg       = Color(0xFF2D2D2D)
@@ -55,13 +58,13 @@ fun RepCreateHouseholdScreen(
 
     Surface(Modifier.fillMaxSize(), color = BgMain) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Nuevo hogar", color = TextPri, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-            Text("Completa los datos para crear tu hogar.", color = TextSec)
+            Text(stringResource(R.string.rep_create_title), color = TextPri, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+            Text(stringResource(R.string.rep_create_subtitle), color = TextSec)
 
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nombre", color = TextSec) },
+                label = { Text(stringResource(R.string.rep_create_label_name), color = TextSec) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !loading,
                 colors = TextFieldDefaults.colors(
@@ -81,7 +84,7 @@ fun RepCreateHouseholdScreen(
             OutlinedTextField(
                 value = desc,
                 onValueChange = { desc = it },
-                label = { Text("Descripción", color = TextSec) },
+                label = { Text(stringResource(R.string.rep_create_label_description), color = TextSec) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !loading,
                 minLines = 3,
@@ -104,7 +107,7 @@ fun RepCreateHouseholdScreen(
                     value = currency,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Moneda", color = TextSec) },
+                    label = { Text(stringResource(R.string.rep_create_label_currency), color = TextSec) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = vm.menuExpanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth(),
                     enabled = !loading,
@@ -139,7 +142,9 @@ fun RepCreateHouseholdScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(onClick = onCancel, enabled = !loading) { Text("Cancelar") }
+                OutlinedButton(onClick = onCancel, enabled = !loading) {
+                    Text(stringResource(R.string.rep_create_button_cancel))
+                }
                 Button(
                     onClick = {
                         vm.create(name.trim(), desc.trim(), currency.trim()) {
@@ -153,7 +158,7 @@ fun RepCreateHouseholdScreen(
                         CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(18.dp), color = Color.White)
                         Spacer(Modifier.width(8.dp))
                     }
-                    Text("Crear hogar")
+                    Text(stringResource(R.string.rep_create_button_create))
                 }
             }
         }

@@ -34,6 +34,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary = Color(0xFF1565C0)
 private val InfoColor    = Color(0xFF1A73E8)
@@ -59,6 +61,10 @@ fun MembContribsScreen(
 
     var pendingUploadFor by remember { mutableStateOf<Long?>(null) }
 
+    val snackSuccess = stringResource(R.string.memb_contribs_toast_upload_success)
+    val snackFail = stringResource(R.string.memb_contribs_toast_upload_fail)
+    val snackReadFail = stringResource(R.string.memb_contribs_toast_read_fail)
+
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -68,10 +74,10 @@ fun MembContribsScreen(
             multipartFromUri(ctx, uri)?.let { part ->
                 vm.uploadReceipt(mcId, part) { ok ->
                     scope.launch {
-                        snackbar.showSnackbar(if (ok) "Boleta enviada" else "No se pudo enviar la boleta")
+                        snackbar.showSnackbar(if (ok) snackSuccess else snackFail)
                     }
                 }
-            } ?: scope.launch { snackbar.showSnackbar("No se pudo leer el archivo") }
+            } ?: scope.launch { snackbar.showSnackbar(snackReadFail) }
         }
     }
 
@@ -105,13 +111,13 @@ fun MembContribsScreen(
                 ) {
                     item {
                         Text(
-                            "Contribuciones",
+                            stringResource(R.string.memb_contribs_title),
                             color = TextPri,
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Sube el comprobante de pago o revisa el estado.",
+                            stringResource(R.string.memb_contribs_subtitle),
                             color = TextSec,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -135,7 +141,7 @@ fun MembContribsScreen(
                                     .padding(top = 48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("No hay contribuciones pendientes.", color = TextSec)
+                                Text(stringResource(R.string.memb_contribs_empty_list), color = TextSec)
                             }
                         }
                     }
@@ -152,6 +158,8 @@ private fun ContribCard(
     row: ContribRow,
     onUpload: () -> Unit
 ) {
+    val fallbackDash = stringResource(R.string.common_fallback_dash)
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = BgCard,
@@ -163,7 +171,7 @@ private fun ContribCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = row.billDescription ?: "Factura",
+                    text = row.billDescription ?: stringResource(R.string.memb_contribs_fallback_bill),
                     color = TextPri,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
@@ -176,20 +184,29 @@ private fun ContribCard(
             Spacer(Modifier.height(8.dp))
             HorizontalLine()
 
-            Labeled("Descripción", row.contribDescription ?: "—")
-            Labeled("Estrategia", when(row.strategy?.uppercase()) {
-                "EQUAL" -> "Partes iguales"
-                "INCOME_BASED" -> "Según ingresos"
-                else -> row.strategy ?: "—"
-            })
-            Labeled("Fecha factura", row.billDate ?: "—")
-            Labeled("Fecha límite", row.dueDate ?: "—")
-            Labeled("Monto facturado", row.billAmount?.let { "S/ %.2f".format(it) } ?: "—")
-            Labeled("Monto a pagar", "S/ %.2f".format(row.mc.amount))
+            val strategyText = when(row.strategy?.uppercase()) {
+                "EQUAL" -> stringResource(R.string.memb_contribs_strategy_equal)
+                "INCOME_BASED" -> stringResource(R.string.memb_contribs_strategy_income)
+                else -> row.strategy ?: fallbackDash
+            }
+
+            Labeled(stringResource(R.string.memb_contribs_label_description), row.contribDescription ?: fallbackDash)
+            Labeled(stringResource(R.string.memb_contribs_label_strategy), strategyText)
+            Labeled(stringResource(R.string.memb_contribs_label_bill_date), row.billDate ?: fallbackDash)
+            Labeled(stringResource(R.string.memb_contribs_label_due_date), row.dueDate ?: fallbackDash)
+            Labeled(stringResource(R.string.memb_contribs_label_bill_amount), row.billAmount?.let { "S/ %.2f".format(it) } ?: fallbackDash)
+            Labeled(stringResource(R.string.memb_contribs_label_amount_to_pay), "S/ %.2f".format(row.mc.amount))
 
             Spacer(Modifier.height(10.dp))
 
             val canUpload = row.statusUi != "PAGADO"
+
+            val buttonText = if (row.statusUi == "EN_REVISION") {
+                stringResource(R.string.memb_contribs_button_replace)
+            } else {
+                stringResource(R.string.memb_contribs_button_upload)
+            }
+
             Button(
                 onClick = onUpload,
                 enabled = canUpload,
@@ -197,7 +214,7 @@ private fun ContribCard(
                     containerColor = if (row.statusUi == "EN_REVISION") InfoColor else BrandPrimary
                 )
             ) {
-                Text(if (row.statusUi == "EN_REVISION") "Reemplazar boleta" else "Pagar / Subir boleta")
+                Text(buttonText)
             }
         }
     }
@@ -205,18 +222,19 @@ private fun ContribCard(
 
 @Composable private fun Labeled(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = TextSec, modifier = Modifier.width(120.dp))
-        Text(value, color = TextPri)
+        Text(label, color = TextSec, modifier = Modifier.width(120.dp), style = MaterialTheme.typography.bodySmall)
+        Text(value, color = TextPri, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
     }
 }
 
-@Composable private fun StatusPill(status: String) {
-    val (bg, fg, text) = when (status) {
-        "PAGADO"      -> Triple(SuccessColor.copy(.15f), SuccessColor, "Pagado")
-        "EN_REVISION" -> Triple(InfoColor.copy(.15f),    InfoColor,    "En revisión")
-        "RECHAZADO"   -> Triple(DangerColor.copy(.15f),  DangerColor,  "Rechazado")
-        else          -> Triple(WarningColor.copy(.15f), WarningColor, "Pendiente")
+@Composable private fun StatusPill(statusKey: String) {
+    val (bg, fg, text) = when (statusKey) {
+        "PAGADO"      -> Triple(SuccessColor.copy(.15f), SuccessColor, stringResource(R.string.memb_contribs_status_paid))
+        "EN_REVISION" -> Triple(InfoColor.copy(.15f),    InfoColor,    stringResource(R.string.memb_contribs_status_review))
+        "RECHAZADO"   -> Triple(DangerColor.copy(.15f),  DangerColor,  stringResource(R.string.memb_contribs_status_rejected))
+        else          -> Triple(WarningColor.copy(.15f), WarningColor, stringResource(R.string.memb_contribs_status_pending))
     }
+
     Surface(
         color = bg,
         shape = RoundedCornerShape(999.dp)

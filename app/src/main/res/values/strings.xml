@@ -143,4 +143,89 @@
     <string name="member_vm_empty_no_household">No perteneces a ningún hogar.</string>
     <string name="member_vm_error_fetch_household">Error obteniendo hogar.</string>
     <string name="member_vm_default_household_name">Mi hogar</string>
+
+    <string name="memb_status_title">Contribuciones Pagadas</string>
+    <string name="memb_status_subtitle">Historial de pagos realizados</string>
+    <string name="memb_status_empty_list">No hay pagos registrados.</string>
+    <string name="memb_status_status_paid">Pagado</string>
+    <string name="memb_status_status_review">En revisión</string>
+    <string name="memb_status_status_pending">Pendiente</string>
+    <string name="memb_status_fallback_bill_desc">Factura</string>
+    <string name="memb_status_label_description">Descripción</string>
+    <string name="memb_status_label_strategy">Estrategia</string>
+    <string name="memb_status_label_bill_date">Fecha factura</string>
+    <string name="memb_status_label_due_date">Fecha límite</string>
+    <string name="memb_status_label_paid_at">Pagado en</string>
+    <string name="memb_status_strategy_equal">Partes iguales</string>
+    <string name="memb_status_strategy_income">Según ingresos</string>
+    <string name="common_fallback_dash">—</string>
+
+    <string name="memb_status_vm_error_not_logged_in">Usuario no logueado.</string>
+    <string name="memb_status_vm_empty_no_household">No perteneces a ningún hogar.</string>
+    <string name="memb_status_vm_error_list_contribs">Error listando contribuciones</string>
+
+    <string name="memb_contribs_title">Contribuciones</string>
+    <string name="memb_contribs_subtitle">Sube el comprobante de pago o revisa el estado.</string>
+    <string name="memb_contribs_empty_list">No hay contribuciones pendientes.</string>
+    <string name="memb_contribs_fallback_bill">Factura</string>
+    <string name="memb_contribs_label_description">Descripción</string>
+    <string name="memb_contribs_label_strategy">Estrategia</string>
+    <string name="memb_contribs_label_bill_date">Fecha factura</string>
+    <string name="memb_contribs_label_due_date">Fecha límite</string>
+    <string name="memb_contribs_label_bill_amount">Monto facturado</string>
+    <string name="memb_contribs_label_amount_to_pay">Monto a pagar</string>
+    <string name="memb_contribs_strategy_equal">Partes iguales</string>
+    <string name="memb_contribs_strategy_income">Según ingresos</string>
+    <string name="memb_contribs_status_paid">Pagado</string>
+    <string name="memb_contribs_status_review">En revisión</string>
+    <string name="memb_contribs_status_rejected">Rechazado</string>
+    <string name="memb_contribs_status_pending">Pendiente</string>
+    <string name="memb_contribs_button_replace">Reemplazar boleta</string>
+    <string name="memb_contribs_button_upload">Pagar / Subir boleta</string>
+    <string name="memb_contribs_toast_upload_success">Boleta enviada</string>
+    <string name="memb_contribs_toast_upload_fail">No se pudo enviar la boleta</string>
+    <string name="memb_contribs_toast_read_fail">No se pudo leer el archivo</string>
+
+    <string name="memb_contribs_vm_error_no_household">No perteneces a ningún hogar.</string>
+    <string name="memb_contribs_vm_error_list_contribs">Error listando contribuciones</string>
+
+    <string name="member_nav_app_name">SpliteEasy</string>
+    <string name="member_nav_title">Panel de Miembro</string>
+    <string name="member_nav_tab_home">Inicio</string>
+    <string name="member_nav_tab_contribs">Contribuciones</string>
+    <string name="member_nav_tab_status">Estado</string>
+    <string name="member_nav_tab_settings">Ajustes</string>
+    <string name="member_nav_loading_user">Cargando usuario…</string>
+    <string name="member_nav_cd_logout">Cerrar sesión</string>
+
+    <string name="rep_home_onboarding_welcome">¡Bienvenido 👋!</string>
+    <string name="rep_home_onboarding_subtitle">Aún no has creado tu hogar. Crea uno para comenzar.</string>
+    <string name="rep_home_onboarding_button">Crear hogar</string>
+
+    <string name="rep_home_dashboard_title">Panel del hogar</string>
+    <string name="rep_home_dashboard_currency">Moneda: %1$s</string>
+    <string name="rep_home_dashboard_status_active">Activo</string>
+    <string name="rep_home_section_summary">Resumen rápido</string>
+    <string name="rep_home_stat_members">Miembros</string>
+    <string name="rep_home_stat_bills">Facturas</string>
+    <string name="rep_home_stat_contributions">Contribuciones</string>
+    <string name="rep_home_action_members">Miembros</string>
+    <string name="rep_home_action_bills">Facturas</string>
+    <string name="rep_home_action_contributions">Aportes</string>
+
+    <string name="rep_home_vm_error_user">No se pudo obtener el usuario.</string>
+    <string name="rep_home_vm_error_list_households">No se pudo listar hogares.</string>
+    <string name="rep_home_vm_error_load_dashboard">Error al cargar el panel.</string>
+
+    <string name="rep_create_title">Nuevo hogar</string>
+    <string name="rep_create_subtitle">Completa los datos para crear tu hogar.</string>
+    <string name="rep_create_label_name">Nombre</string>
+    <string name="rep_create_label_description">Descripción</string>
+    <string name="rep_create_label_currency">Moneda</string>
+    <string name="rep_create_button_cancel">Cancelar</string>
+    <string name="rep_create_button_create">Crear hogar</string>
+
+    <string name="rep_create_vm_error_user_id">No se pudo obtener el ID del representante. Vuelve a iniciar sesión.</string>
+    <string name="rep_create_vm_error_generic_fail">No se pudo crear el hogar.</string>
+    <string name="rep_create_vm_error_unknown">Error creando el hogar.</string>
 </resources>

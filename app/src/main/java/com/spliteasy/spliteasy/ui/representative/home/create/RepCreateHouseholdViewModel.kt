@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.representative.home.create
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.HouseholdsService
 import com.spliteasy.spliteasy.data.remote.api.CreateHouseholdRequest
 import com.spliteasy.spliteasy.data.remote.dto.HouseholdDto
@@ -14,9 +16,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RepCreateHouseholdViewModel @Inject constructor(
+    app: Application,
     private val households: HouseholdsService,
     private val accountRepo: AccountRepository
-) : ViewModel()  {
+) : AndroidViewModel(app)  {
 
     private val _loading = MutableStateFlow(false)
     val loading = _loading.asStateFlow()
@@ -32,11 +35,14 @@ class RepCreateHouseholdViewModel @Inject constructor(
         viewModelScope.launch {
             _error.value = null
             _loading.value = true
+
+            val app = getApplication<Application>()
+
             try {
                 val me = accountRepo.me().getOrNull()
                 val repId = me?.id ?: 0L
                 if (repId <= 0L) {
-                    _error.value = "No se pudo obtener el ID del representante. Vuelve a iniciar sesión."
+                    _error.value = app.getString(R.string.rep_create_vm_error_user_id)
                     _loading.value = false
                     return@launch
                 }
@@ -51,10 +57,10 @@ class RepCreateHouseholdViewModel @Inject constructor(
                 if (created.id != null && created.id > 0) {
                     onSuccess()
                 } else {
-                    _error.value = "No se pudo crear el hogar."
+                    _error.value = app.getString(R.string.rep_create_vm_error_generic_fail)
                 }
             } catch (t: Throwable) {
-                _error.value = t.message ?: "Error creando el hogar."
+                _error.value = t.message ?: app.getString(R.string.rep_create_vm_error_unknown)
             } finally {
                 _loading.value = false
             }

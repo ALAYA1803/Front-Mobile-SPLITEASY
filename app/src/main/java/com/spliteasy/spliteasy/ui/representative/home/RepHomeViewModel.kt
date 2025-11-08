@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.representative.home
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.api.BillsService
 import com.spliteasy.spliteasy.data.remote.api.GroupsService
 import com.spliteasy.spliteasy.data.remote.api.ExpensesService
@@ -30,11 +32,12 @@ data class RepHomeUi(
 
 @HiltViewModel
 class RepHomeViewModel @Inject constructor(
+    app: Application,
     private val repo: RepresentativeRepository,
     private val groups: GroupsService,
     private val billsService: BillsService,
     private val expensesService: ExpensesService
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow(RepHomeUi())
     val ui = _ui.asStateFlow()
@@ -42,12 +45,14 @@ class RepHomeViewModel @Inject constructor(
     fun load() {
         viewModelScope.launch {
             _ui.value = RepHomeUi(loading = true)
+            val app = getApplication<Application>()
+
             val meId = repo.meId().getOrElse {
-                _ui.value = RepHomeUi(loading = false, error = it.message ?: "No se pudo obtener el usuario.")
+                _ui.value = RepHomeUi(loading = false, error = it.message ?: app.getString(R.string.rep_home_vm_error_user))
                 return@launch
             }
             val households = repo.listAllHouseholds().getOrElse {
-                _ui.value = RepHomeUi(loading = false, error = it.message ?: "No se pudo listar hogares.")
+                _ui.value = RepHomeUi(loading = false, error = it.message ?: app.getString(R.string.rep_home_vm_error_list_households))
                 return@launch
             }
 
@@ -86,7 +91,7 @@ class RepHomeViewModel @Inject constructor(
                     loading = false,
                     showOnboarding = false,
                     household = mine,
-                    error = t.message ?: "Error al cargar el panel."
+                    error = t.message ?: app.getString(R.string.rep_home_vm_error_load_dashboard)
                 )
             }
         }

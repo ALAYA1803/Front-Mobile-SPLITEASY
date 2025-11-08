@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.NumberFormat
 import java.util.*
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 
 private val BrandPrimary   = Color(0xFF1565C0)
@@ -57,11 +59,11 @@ fun MemberHomeScreen(
                 CircularProgressIndicator(color = BrandPrimary)
             }
             is MemberHomeUiState.Error -> ErrorBox(
-                message = s.message ?: "Ocurrió un error al cargar.",
+                message = s.message ?: stringResource(R.string.member_home_error_generic),
                 onRetry = vm::refresh
             )
             is MemberHomeUiState.Ready -> MemberHomeContent(s)
-            else -> EmptyBox("Sin datos para mostrar.")
+            else -> EmptyBox(stringResource(R.string.member_home_empty_generic))
         }
     }
 }
@@ -91,14 +93,14 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatCard(
-                        title = "Total pendiente",
+                        title = stringResource(R.string.member_home_stat_pending),
                         value = fmt.format(s.totalPending),
                         icon = Icons.Rounded.Wallet,
                         tint = BrandSecondary,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        title = "Total pagado",
+                        title = stringResource(R.string.member_home_stat_paid),
                         value = fmt.format(s.totalPaid),
                         icon = Icons.Rounded.CheckCircle,
                         tint = SuccessColor,
@@ -107,14 +109,14 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatCard(
-                        title = "Contribuciones activas",
+                        title = stringResource(R.string.member_home_stat_active_contribs),
                         value = s.activeContribsCount.toString(),
                         icon = Icons.Rounded.AccountCircle,
                         tint = InfoColor,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
-                        title = "Miembros",
+                        title = stringResource(R.string.member_home_stat_members),
                         value = s.members.size.toString(),
                         icon = Icons.Rounded.Groups,
                         tint = BrandPrimary,
@@ -126,7 +128,7 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
         if (s.members.isNotEmpty()) {
             item {
                 SectionTitle(
-                    text = "Miembros del hogar",
+                    text = stringResource(R.string.member_home_section_members),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -170,7 +172,7 @@ private fun HeroHeader(
         ) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 Text(
-                    text = "¡Hola, $userName!",
+                    text = stringResource(R.string.member_home_hero_greeting, userName),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         color = TextPrimary,
                         fontWeight = FontWeight.Bold
@@ -178,7 +180,7 @@ private fun HeroHeader(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Este es tu panel como miembro.",
+                    text = stringResource(R.string.member_home_hero_subtitle),
                     style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
                 )
                 Spacer(Modifier.height(12.dp))
@@ -188,7 +190,9 @@ private fun HeroHeader(
                     color = CardBg,
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp,
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
+                    border = ButtonDefaults.outlinedButtonBorder(
+                        enabled = true
+                    ).copy(
                         width = 1.dp,
                         brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
                     )
@@ -237,7 +241,9 @@ private fun StatCard(
         color = CardBg,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = ButtonDefaults.outlinedButtonBorder.copy(
+        border = ButtonDefaults.outlinedButtonBorder(
+            enabled = true
+        ).copy(
             width = 1.dp,
             brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
         )
@@ -301,7 +307,8 @@ private fun MemberRow(
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val initial = name.trim().ifEmpty { "U" }.first().uppercaseChar().toString()
+        val initial = name.trim().ifEmpty { stringResource(R.string.member_home_member_initial_fallback) }
+            .first().uppercaseChar().toString()
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -346,6 +353,11 @@ private fun MemberRow(
 
 @Composable
 private fun RoleTag(role: String, highlighted: Boolean) {
+    val roleText = when (role.uppercase()) {
+        "ROLE_REPRESENTANTE" -> stringResource(R.string.member_home_role_representative)
+        else -> stringResource(R.string.member_home_role_member)
+    }
+
     val bg = if (highlighted) BrandPrimary.copy(alpha = 0.25f) else Color(0xFF3A3A3A)
     val fg = if (highlighted) TextPrimary else TextSecondary
     Surface(
@@ -354,13 +366,15 @@ private fun RoleTag(role: String, highlighted: Boolean) {
         shape = RoundedCornerShape(999.dp),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = ButtonDefaults.outlinedButtonBorder.copy(
+        border = ButtonDefaults.outlinedButtonBorder(
+            enabled = true
+        ).copy(
             width = if (highlighted) 1.dp else 0.dp,
             brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
         )
     ) {
         Text(
-            role,
+            roleText,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
         )
@@ -376,7 +390,7 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ups…", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
         Spacer(Modifier.height(8.dp))
         Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
         Spacer(Modifier.height(16.dp))
@@ -384,7 +398,7 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
         ) {
-            Text("Reintentar")
+            Text(stringResource(R.string.common_retry))
         }
     }
 }
@@ -398,7 +412,7 @@ private fun EmptyBox(message: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Sin datos", style = MaterialTheme.typography.titleLarge, color = TextPrimary)
+        Text(stringResource(R.string.common_empty_title), style = MaterialTheme.typography.titleLarge, color = TextPrimary)
         Spacer(Modifier.height(8.dp))
         Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
     }
@@ -422,9 +436,9 @@ private fun currencyFormatter(code: String): NumberFormat {
 }
 
 private fun firstRoleLabel(roles: List<String>): String {
-    if (roles.isEmpty()) return "MIEMBRO"
+    if (roles.isEmpty()) return "ROLE_MIEMBRO"
     val r = roles.first().uppercase()
-    return if (r.contains("REPRESENTANTE")) "REPRESENTANTE" else "MIEMBRO"
+    return if (r.contains("REPRESENTANTE")) "ROLE_REPRESENTANTE" else "ROLE_MIEMBRO"
 }
 
 private fun resolveWelcomeName(s: MemberHomeUiState.Ready): String {
@@ -455,6 +469,5 @@ private fun resolveWelcomeName(s: MemberHomeUiState.Ready): String {
     tryProp<String>("username")?.let { if (it.isNotBlank()) return it }
 
     s.members.firstOrNull()?.username?.takeIf { it.isNotBlank() }?.let { return it }
-
     return "Usuario"
 }

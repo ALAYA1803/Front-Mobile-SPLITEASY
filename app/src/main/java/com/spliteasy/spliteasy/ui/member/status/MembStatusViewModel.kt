@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.member.status
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
@@ -35,9 +37,10 @@ sealed interface StatusUiState {
 
 @HiltViewModel
 class MembStatusViewModel @Inject constructor(
+    app: Application,
     private val repo: MemberRepository,
     private val tokenStore: TokenDataStore
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _ui = MutableStateFlow<StatusUiState>(StatusUiState.Loading)
     val ui = _ui.asStateFlow()
@@ -46,20 +49,22 @@ class MembStatusViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.value = StatusUiState.Loading
 
+            val app = getApplication<Application>()
+
             val userId = tokenStore.readUserId()
             if (userId == null) {
-                _ui.value = StatusUiState.Empty("Usuario no logueado.")
+                _ui.value = StatusUiState.Empty(app.getString(R.string.memb_status_vm_error_not_logged_in))
                 return@launch
             }
 
             val hh = repo.findMyHouseholdByScanning(userId).getOrNull()
             if (hh == null) {
-                _ui.value = StatusUiState.Empty("No perteneces a ningún hogar.")
+                _ui.value = StatusUiState.Empty(app.getString(R.string.memb_status_vm_empty_no_household))
                 return@launch
             }
 
             val mcs = repo.listMyMemberContributions(userId, hh.id).getOrElse {
-                _ui.value = StatusUiState.Error(it.message ?: "Error listando contribuciones")
+                _ui.value = StatusUiState.Error(it.message ?: app.getString(R.string.memb_status_vm_error_list_contribs))
                 return@launch
             }
 

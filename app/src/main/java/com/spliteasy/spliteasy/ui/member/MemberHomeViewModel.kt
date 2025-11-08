@@ -1,7 +1,9 @@
 package com.spliteasy.spliteasy.ui.member
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.local.TokenDataStore
 import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
@@ -17,9 +19,10 @@ import kotlin.math.round
 
 @HiltViewModel
 class MemberHomeViewModel @Inject constructor(
+    app: Application,
     private val repo: MemberRepository,
     private val tokenStore: TokenDataStore
-) : ViewModel() {
+) : AndroidViewModel(app) {
 
     private val _uiState = MutableStateFlow<MemberHomeUiState>(MemberHomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -28,32 +31,34 @@ class MemberHomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = MemberHomeUiState.Loading
 
+            val app = getApplication<Application>()
+
             val storedId = tokenStore.readUserId()
             val token = tokenStore.readToken()
             var currentUserId: Long? = storedId ?: JwtUtils.userId(token)
             var currentUserName: String? = JwtUtils.username(token)
 
             if (currentUserId == null) {
-                _uiState.value = MemberHomeUiState.Empty("Usuario no logueado.")
+                _uiState.value = MemberHomeUiState.Empty(app.getString(R.string.member_vm_error_not_logged_in))
                 return@launch
             }
 
             val hh = repo.findMyHouseholdByScanning(currentUserId).getOrElse {
-                _uiState.value = MemberHomeUiState.Error(it.message ?: "Error buscando hogar")
+                _uiState.value = MemberHomeUiState.Error(it.message ?: app.getString(R.string.member_vm_error_find_household))
                 return@launch
             }
             if (hh == null) {
-                _uiState.value = MemberHomeUiState.Empty("No perteneces a ningún hogar.")
+                _uiState.value = MemberHomeUiState.Empty(app.getString(R.string.member_vm_empty_no_household))
                 return@launch
             }
 
             val household = repo.fetchHousehold(hh.id).getOrElse {
-                _uiState.value = MemberHomeUiState.Error(it.message ?: "Error obteniendo hogar")
+                _uiState.value = MemberHomeUiState.Error(it.message ?: app.getString(R.string.member_vm_error_fetch_household))
                 return@launch
             }
 
             val membersRaw = repo.fetchHouseholdMembers(hh.id).getOrElse { emptyList() }
-            val membersUi = mapMembersToUi(membersRaw)
+            val membersUi = mapMembersToUi(membersRaw, app)
 
             if (currentUserName.isNullOrBlank()) {
                 currentUserName = membersUi.firstOrNull { it.id == currentUserId }?.username
@@ -72,7 +77,7 @@ class MemberHomeViewModel @Inject constructor(
             val activeCount  = pendingList.size
 
             _uiState.value = MemberHomeUiState.Ready(
-                householdName = household.name ?: "Mi hogar",
+                householdName = household.name ?: app.getString(R.string.member_vm_default_household_name),
                 householdDescription = household.description ?: "",
                 currency = household.currency ?: "PEN",
                 members = membersUi,
@@ -121,15 +126,17 @@ class MemberHomeViewModel @Inject constructor(
     private fun Map<*, *>.stringOrEmpty(key: String): String =
         (this[key] as? String) ?: ""
 
-    private suspend fun mapMembersToUi(raw: List<Any>): List<MemberItemUi> {
+    private suspend fun mapMembersToUi(raw: List<Any>, app: Application): List<MemberItemUi> {
         if (raw.isEmpty()) return emptyList()
+
+        val fallbackUser = app.getString(R.string.common_user_fallback)
 
         return if (raw.looksLikeUsers()) {
             raw.mapNotNull { any ->
                 val m = any as? Map<*, *> ?: return@mapNotNull null
                 val id = m.longOrNull("id") ?: return@mapNotNull null
                 val username = m.stringOrEmpty("username").ifBlank {
-                    m.stringOrEmpty("email").substringBefore("@", "Usuario")
+                    m.stringOrEmpty("email").substringBefore("@", fallbackUser)
                 }
                 val email = m.stringOrEmpty("email")
                 val roles = (m["roles"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
@@ -149,8 +156,8 @@ class MemberHomeViewModel @Inject constructor(
                 .mapNotNull { (_, user) ->
                     user?.let {
                         val username = it.username?.ifBlank {
-                            it.email?.substringBefore("@", "Usuario")
-                        } ?: it.email?.substringBefore("@", "Usuario") ?: "Usuario"
+                            it.email?.substringBefore("@", fallbackUser)
+                        } ?: it.email?.substringBefore("@", fallbackUser) ?: fallbackUser
 
                         MemberItemUi(
                             id = it.id,

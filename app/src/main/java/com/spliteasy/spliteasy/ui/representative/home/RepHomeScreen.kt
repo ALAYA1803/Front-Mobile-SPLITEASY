@@ -27,6 +27,8 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BrandPrimary   = Color(0xFF1565C0)
 private val BrandSecondary = Color(0xFFFF6F00)
@@ -53,7 +55,7 @@ fun RepHomeScreen(
                 CircularProgressIndicator(color = BrandPrimary)
             }
             ui.error != null -> ErrorBox(
-                message = ui.error ?: "Ocurrió un error al cargar.",
+                message = ui.error ?: stringResource(R.string.member_home_error_generic),
                 onRetry = vm::load
             )
             ui.showOnboarding -> OnboardingCard(onCreate = onCreateHousehold)
@@ -77,7 +79,9 @@ private fun OnboardingCard(onCreate: () -> Unit) {
             shape = RoundedCornerShape(16.dp),
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
-            border = ButtonDefaults.outlinedButtonBorder.copy(
+            border = ButtonDefaults.outlinedButtonBorder(
+                enabled = true
+            ).copy(
                 width = 1.dp,
                 brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
             )
@@ -88,12 +92,12 @@ private fun OnboardingCard(onCreate: () -> Unit) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    "¡Bienvenido 👋!",
+                    stringResource(R.string.rep_home_onboarding_welcome),
                     color = TextPrimary,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
-                    "Aún no has creado tu hogar. Crea uno para comenzar.",
+                    stringResource(R.string.rep_home_onboarding_subtitle),
                     color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -101,7 +105,7 @@ private fun OnboardingCard(onCreate: () -> Unit) {
                 Button(
                     onClick = onCreate,
                     colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-                ) { Text("Crear hogar") }
+                ) { Text(stringResource(R.string.rep_home_onboarding_button)) }
             }
         }
     }
@@ -119,26 +123,27 @@ private fun Dashboard(ui: RepHomeUi) {
         item {
             Hero(
                 householdName = ui.household?.name.orEmpty(),
-                householdDesc = ui.household?.description.orEmpty()
+                householdDesc = ui.household?.description.orEmpty(),
+                currency = ui.currency
             )
         }
 
         item {
-            Section(title = "Resumen rápido") {
+            Section(title = stringResource(R.string.rep_home_section_summary)) {
                 Column(
                     Modifier.padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatCard(
-                            title = "Miembros",
+                            title = stringResource(R.string.rep_home_stat_members),
                             value = ui.membersCount,
                             icon = Icons.Rounded.Groups,
                             tint = BrandPrimary,
                             modifier = Modifier.weight(1f)
                         )
                         StatCard(
-                            title = "Facturas",
+                            title = stringResource(R.string.rep_home_stat_bills),
                             value = ui.billsCount,
                             icon = Icons.Rounded.ReceiptLong,
                             tint = BrandSecondary,
@@ -147,7 +152,7 @@ private fun Dashboard(ui: RepHomeUi) {
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         StatCard(
-                            title = "Contribuciones",
+                            title = stringResource(R.string.rep_home_stat_contributions),
                             value = ui.contributionsCount,
                             icon = Icons.Rounded.Wallet,
                             tint = InfoColor,
@@ -164,7 +169,8 @@ private fun Dashboard(ui: RepHomeUi) {
 @Composable
 private fun Hero(
     householdName: String,
-    householdDesc: String
+    householdDesc: String,
+    currency: String
 ) {
     val gradient = Brush.verticalGradient(
         listOf(BrandPrimary.copy(alpha = .22f), Color.Transparent)
@@ -178,13 +184,13 @@ private fun Hero(
                 .padding(horizontal = 16.dp)
         ) {
             Text(
-                "Panel del hogar",
+                stringResource(R.string.rep_home_dashboard_title),
                 color = TextSecondary,
                 style = MaterialTheme.typography.labelLarge
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = if (householdName.isBlank()) "—" else householdName,
+                text = if (householdName.isBlank()) stringResource(R.string.common_fallback_dash) else householdName,
                 color = TextPrimary,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
@@ -203,7 +209,7 @@ private fun Hero(
                 AssistChip(
                     onClick = {},
                     enabled = true,
-                    label = { Text("Moneda: PEN") },
+                    label = { Text(stringResource(R.string.rep_home_dashboard_currency, currency)) },
                     leadingIcon = { /* … */ },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = CardBg,
@@ -213,7 +219,7 @@ private fun Hero(
                 )
                 AssistChip(
                     onClick = {},
-                    label = { Text("Activo") },
+                    label = { Text(stringResource(R.string.rep_home_dashboard_status_active)) },
                     leadingIcon = {
                         Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = SuccessColor)
                     },
@@ -225,7 +231,7 @@ private fun Hero(
                 )
             }
             Spacer(Modifier.height(8.dp))
-            Divider(color = BorderColor)
+            HorizontalDivider(color = BorderColor)
         }
     }
 }
@@ -242,9 +248,9 @@ private fun QuickActionsRow(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ActionChip("Miembros", Icons.Rounded.Groups, BrandPrimary) { onMembers?.invoke() }
-        ActionChip("Facturas", Icons.Rounded.ReceiptLong, BrandSecondary) { onBills?.invoke() }
-        ActionChip("Aportes", Icons.Rounded.Wallet, InfoColor) { onContrib?.invoke() }
+        ActionChip(stringResource(R.string.rep_home_action_members), Icons.Rounded.Groups, BrandPrimary) { onMembers?.invoke() }
+        ActionChip(stringResource(R.string.rep_home_action_bills), Icons.Rounded.ReceiptLong, BrandSecondary) { onBills?.invoke() }
+        ActionChip(stringResource(R.string.rep_home_action_contributions), Icons.Rounded.Wallet, InfoColor) { onContrib?.invoke() }
     }
     Spacer(Modifier.height(4.dp))
 }
@@ -342,14 +348,14 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ups…", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
         Spacer(Modifier.height(8.dp))
         Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onRetry,
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-        ) { Text("Reintentar") }
+        ) { Text(stringResource(R.string.common_retry)) }
     }
 }
 
