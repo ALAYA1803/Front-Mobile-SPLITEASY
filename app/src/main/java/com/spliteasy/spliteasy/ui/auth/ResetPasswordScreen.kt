@@ -18,6 +18,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 private val BgMain      = Color(0xFF2D2D2D)
 private val CardBg      = Color(0xFF1B1E24)
@@ -54,7 +56,7 @@ fun ResetPasswordScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Nueva contraseña",
+                text = stringResource(R.string.reset_pass_title),
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = TextPri,
                     fontWeight = FontWeight.SemiBold
@@ -62,7 +64,7 @@ fun ResetPasswordScreen(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                text = "Crea una contraseña segura (8–100 caracteres).",
+                text = stringResource(R.string.reset_pass_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = TextSec
                 )
@@ -86,7 +88,7 @@ fun ResetPasswordScreen(
                         .padding(20.dp)
                 ) {
                     Text(
-                        "Cambiar contraseña",
+                        stringResource(R.string.reset_pass_card_title),
                         style = MaterialTheme.typography.headlineSmall.copy(
                             color = TextPri,
                             fontWeight = FontWeight.Bold
@@ -96,11 +98,18 @@ fun ResetPasswordScreen(
                     Spacer(Modifier.height(14.dp))
 
                     Text(
-                        "Nueva contraseña",
+                        stringResource(R.string.reset_pass_label_new),
                         color = TextPri,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                     )
                     Spacer(Modifier.height(6.dp))
+
+                    val cdShowHide1 = if (show1) {
+                        stringResource(R.string.reset_pass_cd_hide)
+                    } else {
+                        stringResource(R.string.reset_pass_cd_show)
+                    }
+
                     OutlinedTextField(
                         value = vm.pass1,
                         onValueChange = vm::onPass1Change,
@@ -110,7 +119,7 @@ fun ResetPasswordScreen(
                             IconButton(onClick = { show1 = !show1 }) {
                                 Icon(
                                     imageVector = if (show1) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = if (show1) "Ocultar contraseña" else "Mostrar contraseña"
+                                    contentDescription = cdShowHide1
                                 )
                             }
                         },
@@ -121,7 +130,7 @@ fun ResetPasswordScreen(
                             if (error != null && success == null) {
                                 Text(error ?: "", color = Danger)
                             } else {
-                                Text("Mínimo 8 caracteres.", color = TextSec)
+                                Text(stringResource(R.string.reset_pass_support_hint), color = TextSec)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -146,11 +155,18 @@ fun ResetPasswordScreen(
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        "Confirmar contraseña",
+                        stringResource(R.string.reset_pass_label_confirm),
                         color = TextPri,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                     )
                     Spacer(Modifier.height(6.dp))
+
+                    val cdShowHide2 = if (show2) {
+                        stringResource(R.string.reset_pass_cd_hide)
+                    } else {
+                        stringResource(R.string.reset_pass_cd_show)
+                    }
+
                     OutlinedTextField(
                         value = vm.pass2,
                         onValueChange = vm::onPass2Change,
@@ -160,7 +176,7 @@ fun ResetPasswordScreen(
                             IconButton(onClick = { show2 = !show2 }) {
                                 Icon(
                                     imageVector = if (show2) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                    contentDescription = if (show2) "Ocultar contraseña" else "Mostrar contraseña"
+                                    contentDescription = cdShowHide2
                                 )
                             }
                         },
@@ -202,8 +218,13 @@ fun ResetPasswordScreen(
                             .fillMaxWidth()
                             .height(52.dp)
                     ) {
+                        val buttonText = if (loading) {
+                            stringResource(R.string.reset_pass_button_loading)
+                        } else {
+                            stringResource(R.string.reset_pass_button_submit)
+                        }
                         Text(
-                            text = if (loading) "Guardando…" else "Cambiar contraseña",
+                            text = buttonText,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                     }

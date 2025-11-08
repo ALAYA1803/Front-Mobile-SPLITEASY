@@ -29,13 +29,20 @@ class LanguageViewModel @Inject constructor(
         viewModelScope.launch {
             val currentLang = dataStore.languageFlow.first()
             if (lang == currentLang) return@launch
+            _isRestarting.value = true
+
             Log.d("LanguageSetup", "[ViewModel] Guardando idioma '$lang'...")
             dataStore.saveLanguage(lang)
             Log.d("LanguageSetup", "[ViewModel] Aplicando locale '$lang'...")
             val appLocale = LocaleListCompat.forLanguageTags(lang)
             AppCompatDelegate.setApplicationLocales(appLocale)
-
-            _isRestarting.value = true
         }
     }
+
+    fun onLanguageApplied() {
+        if (_isRestarting.value) {
+            _isRestarting.value = false
+        }
+    }
+
 }

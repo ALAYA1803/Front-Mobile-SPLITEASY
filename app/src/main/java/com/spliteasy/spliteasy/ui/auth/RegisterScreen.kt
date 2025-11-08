@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.ui.theme.*
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.res.stringResource
+import com.spliteasy.spliteasy.R
 
 @Composable
 fun RegisterScreen(
@@ -80,7 +82,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                "Crear cuenta",
+                stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -88,7 +90,7 @@ fun RegisterScreen(
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "Únete y divide gastos sin dolor de cabeza.",
+                stringResource(R.string.register_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = Color.White.copy(alpha = 0.9f)
                 )
@@ -107,7 +109,7 @@ fun RegisterScreen(
             ) {
                 Column(Modifier.padding(20.dp)) {
 
-                    Label("Usuario")
+                    Label(stringResource(R.string.register_label_username))
                     OutlinedTextField(
                         value = username,
                         onValueChange = { username = it },
@@ -119,7 +121,7 @@ fun RegisterScreen(
                     )
                     Spacer(Modifier.height(12.dp))
 
-                    Label("Correo")
+                    Label(stringResource(R.string.register_label_email))
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -131,7 +133,7 @@ fun RegisterScreen(
                     )
                     Spacer(Modifier.height(12.dp))
 
-                    Label("Contraseña (mín. 6)")
+                    Label(stringResource(R.string.register_label_password_min_6))
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -144,7 +146,7 @@ fun RegisterScreen(
                     )
                     Spacer(Modifier.height(12.dp))
 
-                    Label("Repite la contraseña")
+                    Label(stringResource(R.string.register_label_password_repeat))
                     OutlinedTextField(
                         value = repeatPassword,
                         onValueChange = { repeatPassword = it },
@@ -158,11 +160,11 @@ fun RegisterScreen(
                     )
                     if (pwdMismatch) {
                         Spacer(Modifier.height(6.dp))
-                        Text("Las contraseñas no coinciden.", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.register_error_password_mismatch), color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(Modifier.height(12.dp))
 
-                    Label("Ingreso (S/.)")
+                    Label(stringResource(R.string.register_label_income))
                     OutlinedTextField(
                         value = income,
                         onValueChange = { if (it.length <= 10) income = it },
@@ -174,23 +176,25 @@ fun RegisterScreen(
                     )
                     if (income.isNotEmpty() && incomeNumber < 0.0) {
                         Spacer(Modifier.height(6.dp))
-                        Text("Debe ser un número mayor o igual a 0.", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.register_error_income_invalid), color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(Modifier.height(12.dp))
 
-                    Label("Rol")
+                    Label(stringResource(R.string.register_label_role))
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentSize(Alignment.TopStart)
                     ) {
+                        val roleText = when (role) {
+                            "ROLE_MIEMBRO" -> stringResource(R.string.register_role_member)
+                            "ROLE_REPRESENTANTE" -> stringResource(R.string.register_role_representative)
+                            else -> ""
+                        }
+
                         OutlinedTextField(
-                            value = when (role) {
-                                "ROLE_MIEMBRO" -> "Miembro"
-                                "ROLE_REPRESENTANTE" -> "Representante"
-                                else -> ""
-                            },
+                            value = roleText,
                             onValueChange = {},
                             readOnly = true,
                             leadingIcon = { Icon(Icons.Outlined.Person, null, tint = TextMuted) },
@@ -202,7 +206,7 @@ fun RegisterScreen(
                                     modifier = Modifier.clickable { expanded = !expanded }
                                 )
                             },
-                            placeholder = { Text("Selecciona rol", color = TextMuted) },
+                            placeholder = { Text(stringResource(R.string.register_placeholder_role), color = TextMuted) },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -217,14 +221,14 @@ fun RegisterScreen(
                             modifier = Modifier.width(menuWidth)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Miembro") },
+                                text = { Text(stringResource(R.string.register_role_member)) },
                                 onClick = {
                                     role = "ROLE_MIEMBRO"
                                     expanded = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Representante") },
+                                text = { Text(stringResource(R.string.register_role_representative)) },
                                 onClick = {
                                     role = "ROLE_REPRESENTANTE"
                                     expanded = false
@@ -239,6 +243,10 @@ fun RegisterScreen(
                     }
 
                     Spacer(Modifier.height(18.dp))
+
+                    // Lógica para el texto del Toast
+                    val successMsg = stringResource(R.string.register_success_toast)
+
                     Button(
                         onClick = {
                             vm.register(
@@ -249,7 +257,7 @@ fun RegisterScreen(
                                 role = role!!
                             ) { ok ->
                                 if (ok) {
-                                    Toast.makeText(ctx, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(ctx, successMsg, Toast.LENGTH_SHORT).show()
                                     onDone()
                                 }
                             }
@@ -264,8 +272,13 @@ fun RegisterScreen(
                             .fillMaxWidth()
                             .height(52.dp)
                     ) {
+                        val buttonText = if (vm.loading) {
+                            stringResource(R.string.register_button_loading)
+                        } else {
+                            stringResource(R.string.register_button_submit)
+                        }
                         Text(
-                            if (vm.loading) "Creando..." else "Crear cuenta",
+                            text = buttonText,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                     }
@@ -276,11 +289,11 @@ fun RegisterScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            "¿Ya tienes cuenta? ",
+                            stringResource(R.string.register_prompt_login),
                             style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
                         )
                         Text(
-                            "Inicia sesión",
+                            stringResource(R.string.register_prompt_login_link),
                             style = MaterialTheme.typography.bodySmall.copy(color = BrandSecondary, fontWeight = FontWeight.Medium),
                             modifier = Modifier.clickable { onDone() }
                         )

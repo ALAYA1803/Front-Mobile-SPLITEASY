@@ -52,6 +52,7 @@
     <string name="language_current_es">ES 🇪🇸</string>
     <string name="language_current_en">EN 🇬🇧</string>
     <string name="language_select">Seleccionar idioma</string>
+    <string name="language_changing">Cambiando idioma...</string>
 
     <string name="login_vm_recaptcha_fail">No se pudo verificar reCAPTCHA. Inténtalo de nuevo.</string>
     <string name="login_vm_error_401">Usuario o contraseña incorrectos.</string>
@@ -80,4 +81,66 @@
     <string name="login_component_welcome_title">¡Bienvenido de nuevo!</string>
     <string name="login_component_welcome_subtitle">Divide gastos sin dolor de cabeza. Inicia sesión para continuar.</string>
     <string name="login_component_close">Cerrar</string>
+
+    <string name="register_title">Crear cuenta</string>
+    <string name="register_subtitle">Únete y divide gastos sin dolor de cabeza.</string>
+    <string name="register_label_username">Usuario</string>
+    <string name="register_label_email">Correo</string>
+    <string name="register_label_password_min_6">Contraseña (mín. 6)</string>
+    <string name="register_label_password_repeat">Repite la contraseña</string>
+    <string name="register_error_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="register_label_income">Ingreso (S/.)</string>
+    <string name="register_error_income_invalid">Debe ser un número mayor o igual a 0.</string>
+    <string name="register_label_role">Rol</string>
+    <string name="register_role_member">Miembro</string>
+    <string name="register_role_representative">Representante</string>
+    <string name="register_placeholder_role">Selecciona rol</string>
+    <string name="register_success_toast">Registro exitoso</string>
+    <string name="register_button_loading">Creando...</string>
+    <string name="register_button_submit">Crear cuenta</string>
+    <string name="register_prompt_login">¿Ya tienes cuenta? </string>
+    <string name="register_prompt_login_link">Inicia sesión</string>
+
+    <string name="register_vm_error_recaptcha">No se pudo obtener el token de reCAPTCHA.</string>
+    <string name="register_vm_error_generic">No se pudo registrar.</string>
+
+    <string name="reset_pass_title">Nueva contraseña</string>
+    <string name="reset_pass_subtitle">Crea una contraseña segura (8–100 caracteres).</string>
+    <string name="reset_pass_card_title">Cambiar contraseña</string>
+    <string name="reset_pass_label_new">Nueva contraseña</string>
+    <string name="reset_pass_label_confirm">Confirmar contraseña</string>
+    <string name="reset_pass_cd_hide">Ocultar contraseña</string>
+    <string name="reset_pass_cd_show">Mostrar contraseña</string>
+    <string name="reset_pass_support_hint">Mínimo 8 caracteres.</string>
+    <string name="reset_pass_button_loading">Guardando…</string>
+    <string name="reset_pass_button_submit">Cambiar contraseña</string>
+
+    <string name="reset_pass_vm_error_length">La contraseña debe tener entre 8 y 100 caracteres.</string>
+    <string name="reset_pass_vm_error_mismatch">Las contraseñas no coinciden.</string>
+    <string name="reset_pass_vm_error_token_missing">Token inválido o faltante.</string>
+    <string name="reset_pass_vm_success">Contraseña actualizada con éxito.</string>
+    <string name="reset_pass_vm_error_token_invalid">Token inválido o expirado.</string>
+
+    <string name="member_home_error_generic">Ocurrió un error al cargar.</string>
+    <string name="member_home_empty_generic">Sin datos para mostrar.</string>
+    <string name="member_home_stat_pending">Total pendiente</string>
+    <string name="member_home_stat_paid">Total pagado</string>
+    <string name="member_home_stat_active_contribs">Contribuciones activas</string>
+    <string name="member_home_stat_members">Miembros</string>
+    <string name="member_home_section_members">Miembros del hogar</string>
+    <string name="member_home_hero_greeting">¡Hola, %1$s!</string>
+    <string name="member_home_hero_subtitle">Este es tu panel como miembro.</string>
+    <string name="member_home_member_initial_fallback">U</string>
+    <string name="member_home_role_member">Miembro</string>
+    <string name="member_home_role_representative">Representante</string>
+    <string name="common_error_oops">Ups…</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_empty_title">Sin datos</string>
+    <string name="common_user_fallback">Usuario</string>
+
+    <string name="member_vm_error_not_logged_in">Usuario no logueado.</string>
+    <string name="member_vm_error_find_household">Error buscando hogar.</string>
+    <string name="member_vm_empty_no_household">No perteneces a ningún hogar.</string>
+    <string name="member_vm_error_fetch_household">Error obteniendo hogar.</string>
+    <string name="member_vm_default_household_name">Mi hogar</string>
 </resources>

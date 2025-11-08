@@ -72,8 +72,12 @@ fun MembSettingsScreen(
 
     LaunchedEffect(isRestarting) {
         if (isRestarting) {
-            delay(350)
-            (context as? Activity)?.recreate()
+            delay(200) // Delay más corto
+            (context as? Activity)?.let { activity ->
+                // Resetear el estado antes de recrear
+                langVm.onLanguageApplied()
+                activity.recreate()
+            }
         }
     }
 
@@ -226,13 +230,6 @@ fun MembSettingsScreen(
                     LanguageSwitchComponent()
                 }
             }
-            item {
-                OutlinedButton(
-                    onClick = onLogout,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPri),
-                    border = ButtonDefaults.outlinedButtonBorder(enabled = true)
-                ) { Text(stringResource(R.string.settings_logout)) }
-            }
             item { Spacer(Modifier.height(100.dp)) }
         }
 
@@ -286,11 +283,18 @@ fun LanguageSwitchComponent(
 ) {
     val context = LocalContext.current
     val currentLang by vm.currentLanguageFlow.collectAsState(initial = "es")
+    val isRestarting by vm.isRestarting.collectAsState()
     var expanded by remember { mutableStateOf(false) }
     Log.d("LanguageSetup", "[Composable] El componente se actualizó. Idioma actual del Flow: $currentLang")
     val buttonText = when (currentLang) {
         "en" -> stringResource(R.string.language_current_en)
         else -> stringResource(R.string.language_current_es)
+    }
+    LaunchedEffect(currentLang) {
+        if (isRestarting) {
+            delay(400)
+            vm.onLanguageApplied()
+        }
     }
 
     Box(modifier = modifier) {

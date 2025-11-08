@@ -10,11 +10,10 @@ import com.spliteasy.spliteasy.ui.navigation.AppNav
 import com.spliteasy.spliteasy.ui.theme.SplitEasyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.spliteasy.spliteasy.data.local.TokenDataStore
-import com.spliteasy.spliteasy.ui.navigation.AppNav
-import com.spliteasy.spliteasy.ui.theme.SplitEasyTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +24,11 @@ class MainActivity : AppCompatActivity() {
                 AppNav(startDestination = Routes.LOGIN)
             }
         }
+    }
+
+    override fun recreate() {
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        super.recreate()
     }
 
     private fun wrapContext(base: Context): Context {

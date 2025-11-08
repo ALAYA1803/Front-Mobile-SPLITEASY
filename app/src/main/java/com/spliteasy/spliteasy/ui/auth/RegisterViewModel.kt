@@ -10,6 +10,7 @@ import com.spliteasy.spliteasy.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import com.spliteasy.spliteasy.R
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -31,10 +32,13 @@ class RegisterViewModel @Inject constructor(
     ) {
         loading = true
         error = null
+        val app = getApplication<Application>()
 
         viewModelScope.launch {
+            val genericError = app.getString(R.string.register_vm_error_generic)
+
             try {
-                val ctx = getApplication<Application>().applicationContext
+                val ctx = app.applicationContext
                 val captchaToken = RecaptchaHelper.getToken(
                     context = ctx,
                     action = RecaptchaAction.SIGNUP
@@ -42,7 +46,7 @@ class RegisterViewModel @Inject constructor(
 
                 if (captchaToken.isNullOrBlank()) {
                     loading = false
-                    error = "No se pudo obtener el token de reCAPTCHA."
+                    error = app.getString(R.string.register_vm_error_recaptcha)
                     onDone(false)
                     return@launch
                 }
@@ -62,12 +66,12 @@ class RegisterViewModel @Inject constructor(
                 if (res.isSuccess) {
                     onDone(true)
                 } else {
-                    error = res.exceptionOrNull()?.message ?: "No se pudo registrar."
+                    error = res.exceptionOrNull()?.message ?: genericError
                     onDone(false)
                 }
             } catch (e: Exception) {
                 loading = false
-                error = e.message ?: "No se pudo registrar."
+                error = e.message ?: genericError
                 onDone(false)
             }
         }
