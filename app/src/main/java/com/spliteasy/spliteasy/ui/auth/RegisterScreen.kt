@@ -1,6 +1,7 @@
 package com.spliteasy.spliteasy.ui.auth
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,14 +14,19 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -28,7 +34,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -37,10 +42,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.spliteasy.spliteasy.ui.theme.*
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
+import com.spliteasy.spliteasy.ui.member.settings.LanguageSwitchComponent
+import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
 
 @Composable
 fun RegisterScreen(
@@ -73,9 +79,20 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(FormColumnBg)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 20.dp, vertical = 24.dp)
+            .statusBarsPadding()
     ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ThemeSwitchComponent()
+            LanguageSwitchComponent()
+        }
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -84,7 +101,7 @@ fun RegisterScreen(
             Text(
                 stringResource(R.string.register_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             )
@@ -92,7 +109,7 @@ fun RegisterScreen(
             Text(
                 stringResource(R.string.register_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.White.copy(alpha = 0.9f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
 
@@ -104,7 +121,7 @@ fun RegisterScreen(
                     .padding(horizontal = 6.dp)
                     .widthIn(max = 420.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1F1F1F)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(Modifier.padding(20.dp)) {
@@ -114,7 +131,7 @@ fun RegisterScreen(
                         value = username,
                         onValueChange = { username = it },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Filled.Person, null, tint = TextMuted) },
+                        leadingIcon = { Icon(Icons.Filled.Person, null) },
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = fieldColors()
@@ -126,7 +143,7 @@ fun RegisterScreen(
                         value = email,
                         onValueChange = { email = it },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Filled.Email, null, tint = TextMuted) },
+                        leadingIcon = { Icon(Icons.Filled.Email, null) },
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = fieldColors()
@@ -138,7 +155,7 @@ fun RegisterScreen(
                         value = password,
                         onValueChange = { password = it },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Filled.Lock, null, tint = TextMuted) },
+                        leadingIcon = { Icon(Icons.Filled.Lock, null) },
                         visualTransformation = PasswordVisualTransformation(),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth(),
@@ -151,7 +168,7 @@ fun RegisterScreen(
                         value = repeatPassword,
                         onValueChange = { repeatPassword = it },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Filled.Lock, null, tint = TextMuted) },
+                        leadingIcon = { Icon(Icons.Filled.Lock, null) },
                         visualTransformation = PasswordVisualTransformation(),
                         isError = pwdMismatch,
                         shape = RoundedCornerShape(10.dp),
@@ -169,7 +186,7 @@ fun RegisterScreen(
                         value = income,
                         onValueChange = { if (it.length <= 10) income = it },
                         singleLine = true,
-                        leadingIcon = { Icon(Icons.Filled.Money, null, tint = TextMuted) },
+                        leadingIcon = { Icon(Icons.Filled.Money, null) },
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = fieldColors()
@@ -197,16 +214,15 @@ fun RegisterScreen(
                             value = roleText,
                             onValueChange = {},
                             readOnly = true,
-                            leadingIcon = { Icon(Icons.Outlined.Person, null, tint = TextMuted) },
+                            leadingIcon = { Icon(Icons.Outlined.Person, null) },
                             trailingIcon = {
                                 Icon(
                                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                                     contentDescription = null,
-                                    tint = TextMuted,
                                     modifier = Modifier.clickable { expanded = !expanded }
                                 )
                             },
-                            placeholder = { Text(stringResource(R.string.register_placeholder_role), color = TextMuted) },
+                            placeholder = { Text(stringResource(R.string.register_placeholder_role)) },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -218,17 +234,19 @@ fun RegisterScreen(
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            modifier = Modifier.width(menuWidth)
+                            modifier = Modifier
+                                .width(menuWidth)
+                                .background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.register_role_member)) },
+                                text = { Text(stringResource(R.string.register_role_member), color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     role = "ROLE_MIEMBRO"
                                     expanded = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(R.string.register_role_representative)) },
+                                text = { Text(stringResource(R.string.register_role_representative), color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     role = "ROLE_REPRESENTANTE"
                                     expanded = false
@@ -264,8 +282,8 @@ fun RegisterScreen(
                         enabled = canSubmit,
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BrandPrimary,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -289,11 +307,11 @@ fun RegisterScreen(
                     ) {
                         Text(
                             stringResource(R.string.register_prompt_login),
-                            style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface)
                         )
                         Text(
                             stringResource(R.string.register_prompt_login_link),
-                            style = MaterialTheme.typography.bodySmall.copy(color = BrandSecondary, fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Medium),
                             modifier = Modifier.clickable { onDone() }
                         )
                     }
@@ -304,22 +322,67 @@ fun RegisterScreen(
 }
 
 @Composable private fun Label(text: String) {
-    Text(text, color = Color.White, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+    Text(
+        text,
+        color = MaterialTheme.colorScheme.onSurface,
+        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+    )
     Spacer(Modifier.height(6.dp))
 }
-
 @Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    cursorColor = Color.White,
-    focusedBorderColor = BorderColor,
-    unfocusedBorderColor = BorderColor.copy(alpha = 0.6f),
-    focusedContainerColor = Color.Transparent,
-    unfocusedContainerColor = Color.Transparent,
-    focusedLeadingIconColor = TextMuted,
-    unfocusedLeadingIconColor = TextMuted,
-    focusedLabelColor = Color.White,
-    unfocusedLabelColor = Color.White,
-    focusedPlaceholderColor = TextMuted,
-    unfocusedPlaceholderColor = TextMuted
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
 )
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeSwitchComponent(
+    modifier: Modifier = Modifier,
+    vm: ThemeViewModel = hiltViewModel()
+) {
+    val currentTheme by vm.theme.collectAsState()
+
+    val (icon, contentDescRes, onClickAction) = when (currentTheme) {
+        "LIGHT" -> Triple(
+            Icons.Rounded.LightMode,
+            R.string.theme_switch_to_dark,
+            { vm.setTheme("DARK") }
+        )
+        "DARK" -> Triple(
+            Icons.Rounded.DarkMode,
+            R.string.theme_switch_to_system,
+            { vm.setTheme("SYSTEM") }
+        )
+        else -> Triple(
+            Icons.Rounded.SettingsBrightness,
+            R.string.theme_switch_to_light,
+            { vm.setTheme("LIGHT") }
+        )
+    }
+
+    OutlinedIconButton(
+        onClick = onClickAction,
+        modifier = modifier.size(40.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(contentDescRes),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}

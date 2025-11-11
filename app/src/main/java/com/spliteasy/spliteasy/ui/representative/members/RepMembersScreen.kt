@@ -13,33 +13,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-
-private val BrandPrimary = Color(0xFF1565C0)
-private val BgMain       = Color(0xFF1A1A1A)
-private val CardBg       = Color(0xFF2D2D2D)
-private val Border       = Color(0xFF404040)
-private val TextPri      = Color(0xFFF8F9FA)
-private val TextSec      = Color(0xFFADB5BD)
+import com.spliteasy.spliteasy.data.remote.dto.RawUserDto
 
 @Composable
 fun RepMembersScreen(vm: RepMembersViewModel = hiltViewModel()) {
     val ui by vm.ui.collectAsState()
     LaunchedEffect(Unit) { vm.load() }
 
-    Surface(Modifier.fillMaxSize(), color = BgMain) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize()) {
             TopRow(onAddClick = { vm.openAddDialog(true) })
 
             when {
                 ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = BrandPrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
                 ui.error != null -> ErrorBox(ui.error ?: stringResource(R.string.member_home_error_generic), onRetry = vm::load)
                 ui.members.isEmpty() -> EmptyBox(onAdd = { vm.openAddDialog(true) })
@@ -66,7 +60,7 @@ private fun TopRow(onAddClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -74,30 +68,30 @@ private fun TopRow(onAddClick: () -> Unit) {
             Text(
                 stringResource(R.string.rep_members_title),
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             )
             Text(
                 stringResource(R.string.rep_members_subtitle),
-                style = MaterialTheme.typography.bodyMedium.copy(color = TextSec)
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
         Button(
             onClick = onAddClick,
-            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Icon(Icons.Rounded.GroupAdd, contentDescription = null, tint = Color.White)
+            Icon(Icons.Rounded.GroupAdd, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.rep_members_button_add))
         }
     }
-    Divider(color = Border, thickness = 1.dp)
+    Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
 }
 
 @Composable
 private fun MembersList(
-    items: List<com.spliteasy.spliteasy.data.remote.dto.RawUserDto>,
+    items: List<RawUserDto>,
     onDelete: (Long) -> Unit
 ) {
     val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
@@ -111,7 +105,7 @@ private fun MembersList(
         items(items.size) { idx ->
             val m = items[idx]
             Surface(
-                color = CardBg,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(14.dp),
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
@@ -119,7 +113,7 @@ private fun MembersList(
                     enabled = true
                 ).copy(
                     width = 1.dp,
-                    brush = androidx.compose.ui.graphics.SolidColor(Border)
+                    brush = SolidColor(MaterialTheme.colorScheme.outline)
                 )
             ) {
                 Row(
@@ -135,14 +129,14 @@ private fun MembersList(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(BrandPrimary.copy(alpha = 0.18f)),
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             initial,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = BrandPrimary
+                                color = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -152,7 +146,7 @@ private fun MembersList(
                         Text(
                             m.username ?: fallbackDash,
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                color = TextPri,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.SemiBold
                             ),
                             maxLines = 1,
@@ -160,14 +154,18 @@ private fun MembersList(
                         )
                         Text(
                             m.email ?: "",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = TextSec),
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
                     IconButton(onClick = { if (m.id != null) onDelete(m.id) }) {
-                        Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_members_cd_delete), tint = Color(0xFFD32F2F))
+                        Icon(
+                            Icons.Rounded.Delete,
+                            contentDescription = stringResource(R.string.rep_members_cd_delete),
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
@@ -191,7 +189,7 @@ private fun AddMemberDialog(
                     CircularProgressIndicator(
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(18.dp),
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(Modifier.width(8.dp))
                 }
@@ -203,21 +201,22 @@ private fun AddMemberDialog(
                 Text(stringResource(R.string.rep_members_dialog_button_cancel))
             }
         },
-        title = { Text(stringResource(R.string.rep_members_dialog_title), color = TextPri) },
+        title = { Text(stringResource(R.string.rep_members_dialog_title), color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.rep_members_dialog_subtitle), color = TextSec)
+                Text(stringResource(R.string.rep_members_dialog_subtitle), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text(stringResource(R.string.rep_members_dialog_label_email)) },
-                    singleLine = true
+                    singleLine = true,
+                    colors = fieldColors()
                 )
             }
         },
-        containerColor = CardBg,
-        textContentColor = TextPri,
-        titleContentColor = TextPri
+        containerColor = MaterialTheme.colorScheme.surface,
+        textContentColor = MaterialTheme.colorScheme.onSurface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -230,13 +229,13 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error)
         Spacer(Modifier.height(8.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSec)
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) { Text(stringResource(R.string.common_retry)) }
     }
 }
@@ -250,15 +249,24 @@ private fun EmptyBox(onAdd: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.rep_members_empty_title), style = MaterialTheme.typography.titleLarge, color = TextPri)
+        Text(stringResource(R.string.rep_members_empty_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.rep_members_empty_subtitle),
-            style = MaterialTheme.typography.bodyMedium, color = TextSec
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onAdd, colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)) {
+        Button(onClick = onAdd, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
             Text(stringResource(R.string.rep_members_empty_button))
         }
     }
 }
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+)

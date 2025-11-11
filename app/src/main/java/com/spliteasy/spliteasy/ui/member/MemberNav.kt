@@ -22,7 +22,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,19 +33,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.member.contribs.MembContribsScreen
 import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 import com.spliteasy.spliteasy.ui.member.status.MembStatusScreen
-import androidx.compose.ui.res.stringResource
-import com.spliteasy.spliteasy.R
-import androidx.compose.ui.graphics.vector.ImageVector
-
-private val BrandPrimary = Color(0xFF1565C0)
-private val BgMain       = Color(0xFF1A1A1A)
-private val BgCard       = Color(0xFF2D2D2D)
-private val Border       = Color(0xFF404040)
-private val TextPri      = Color(0xFFF8F9FA)
-private val TextSec      = Color(0xFFADB5BD)
 
 sealed class MemberDest(
     val route: String,
@@ -84,7 +76,7 @@ fun MemberNavRoot(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = BgMain,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             MemberTopBar(
@@ -101,7 +93,7 @@ fun MemberNavRoot(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(BgMain)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             NavHost(
                 navController = nav,
@@ -120,7 +112,7 @@ fun MemberNavRoot(
                         MembContribsScreen(currentUserId = currentUserId)
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(stringResource(R.string.member_nav_loading_user), color = TextSec)
+                            Text(stringResource(R.string.member_nav_loading_user), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -149,7 +141,7 @@ private fun MemberTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -162,12 +154,12 @@ private fun MemberTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(BrandPrimary.copy(alpha = 0.2f)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = initial,
-                    color = BrandPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -177,24 +169,24 @@ private fun MemberTopBar(
             Column(Modifier.weight(1f)) {
                 Text(
                     text = "$title — $username",
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(text = subtitle, color = TextSec, style = MaterialTheme.typography.bodySmall)
+                Text(text = subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
 
             IconButton(onClick = onLogout) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.Logout,
                     contentDescription = stringResource(R.string.member_nav_cd_logout),
-                    tint = TextPri
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
 
-        HorizontalDivider(color = Border, thickness = 1.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
     }
 }
 
@@ -207,8 +199,8 @@ private fun MemberBottomBar(
     val currentRoute = backStackEntry?.destination?.route
 
     NavigationBar(
-        containerColor = BgCard,
-        contentColor = TextPri,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 0.dp
     ) {
         tabs.forEach { dest ->
@@ -229,23 +221,21 @@ private fun MemberBottomBar(
                 icon = {
                     Icon(
                         imageVector = dest.icon,
-                        contentDescription = labelText,
-                        tint = if (selected) BrandPrimary else TextSec
+                        contentDescription = labelText
                     )
                 },
                 label = {
                     Text(
                         text = labelText,
-                        color = if (selected) TextPri else TextSec,
                         maxLines = 1
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = BrandPrimary,
-                    selectedTextColor = TextPri,
-                    indicatorColor = BrandPrimary.copy(alpha = 0.12f),
-                    unselectedIconColor = TextSec,
-                    unselectedTextColor = TextSec
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }

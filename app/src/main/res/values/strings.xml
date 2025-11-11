@@ -338,4 +338,26 @@
 
     <string name="settings_language_title">Idioma</string>
     <string name="settings_language_subtitle">Selecciona tu idioma</string>
+
+    <string name="theme_title">Tema</string>
+    <string name="theme_subtitle">Elige el aspecto de la app</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_dark">Oscuro</string>
+
+    <string name="rep_contrib_form_strategy_help_title">Estrategia de reparto</string>
+
+    <string name="rep_contrib_form_strategy_help_equal_title">Igualitaria</string>
+    <string name="rep_contrib_form_strategy_help_equal_desc">El total de la contribución se divide en partes iguales entre los miembros seleccionados.\n\n<b>Ejemplo:</b> si el total es S/1000 y hay 4 miembros seleccionados, cada uno paga S/250.</string>
+
+    <string name="rep_contrib_form_strategy_help_income_title">Según Ingresos</string>
+    <string name="rep_contrib_form_strategy_help_income_desc">El total de la contribución se reparte proporcionalmente al ingreso declarado de cada miembro.\n\n<b>Ejemplo:</b> si el total es S/1000 y los ingresos son:\n- Miembro A S/2000\n- Miembro B S/1000\n<i>Suma de ingresos = S/3000.</i>\n\n- A paga: (2000/3000) * 1000 = S/666.67\n- B paga: (1000/3000) * 1000 = S/333.33</string>
+
+    <string name="rep_contrib_form_strategy_help_cd">Ver información sobre estrategias de reparto</string>
+
+    <string name="common_close">Cerrar</string>
+
+    <string name="theme_switch_to_dark">Cambiar a tema oscuro</string>
+    <string name="theme_switch_to_system">Cambiar a tema del sistema</string>
+    <string name="theme_switch_to_light">Cambiar a tema claro</string>
 </resources>

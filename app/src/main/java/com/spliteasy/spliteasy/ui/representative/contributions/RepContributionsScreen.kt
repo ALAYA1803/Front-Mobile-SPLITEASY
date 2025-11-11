@@ -4,6 +4,7 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,34 +22,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
+import com.spliteasy.spliteasy.ui.theme.DangerColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
+import com.spliteasy.spliteasy.ui.theme.WarningColor
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.ui.res.stringResource
-import com.spliteasy.spliteasy.R
-
-private val Brand = Color(0xFF1565C0)
-private val BgMain = Color(0xFF1A1A1A)
-private val CardBg = Color(0xFF1B1E24)
-private val CardBg2 = Color(0xFF222632)
-private val Border = Color(0xFF2B2F3A)
-private val TextPri = Color(0xFFF3F4F6)
-private val TextSec = Color(0xFF9AA0A6)
-private val Success = Color(0xFF2E7D32)
-private val Warning = Color(0xFFFFB300)
-private val Danger = Color(0xFFD32F2F)
+import androidx.compose.material.icons.rounded.Info
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,14 +55,14 @@ fun RepContributionsScreen(
     LaunchedEffect(Unit) { vm.load() }
 
     Scaffold(
-        containerColor = BgMain,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Column {
                         Text(
                             stringResource(R.string.rep_contrib_title),
-                            color = TextPri,
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.titleLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -86,14 +76,14 @@ fun RepContributionsScreen(
                         }
                         Text(
                             subtitle,
-                            color = TextSec,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BgMain)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         },
         floatingActionButton = {
@@ -103,8 +93,8 @@ fun RepContributionsScreen(
                         vm.openForm()
                         scope.launch { formSheetState.show() }
                     },
-                    containerColor = Brand,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
                     text = { Text(stringResource(R.string.rep_contrib_fab)) },
                     modifier = Modifier.navigationBarsPadding()
@@ -123,7 +113,7 @@ fun RepContributionsScreen(
 
             if (ui.loading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Brand)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else {
                 ContributionsList(
@@ -146,7 +136,7 @@ fun RepContributionsScreen(
                 scope.launch { formSheetState.hide() }.invokeOnCompletion { vm.closeForm() }
             },
             sheetState = formSheetState,
-            containerColor = CardBg,
+            containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { SheetHandle() },
         ) {
             CreateContributionSheet(
@@ -172,10 +162,9 @@ fun RepContributionsScreen(
                 scope.launch { reviewSheetState.hide() }.invokeOnCompletion { vm.closeReview() }
             },
             sheetState = reviewSheetState,
-            containerColor = CardBg,
+            containerColor = MaterialTheme.colorScheme.surface,
             dragHandle = { SheetHandle() },
-
-            ) {
+        ) {
             ReviewReceiptsSheet(
                 ui = ui,
                 currency = ui.currency,
@@ -201,7 +190,7 @@ private fun ContributionsList(
 ) {
     if (items.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.rep_contrib_list_empty), color = TextSec)
+            Text(stringResource(R.string.rep_contrib_list_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
@@ -217,22 +206,22 @@ private fun ContributionsList(
         items(items, key = { it.id }) { c ->
             Surface(
                 shape = RoundedCornerShape(14.dp),
-                color = CardBg,
+                color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
                 border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                     width = 1.dp,
-                    brush = androidx.compose.ui.graphics.SolidColor(Border)
+                    brush = SolidColor(MaterialTheme.colorScheme.outline)
                 )
             ) {
                 Column(Modifier.fillMaxWidth().padding(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.ReceiptLong, contentDescription = null, tint = Brand)
+                        Icon(Icons.Rounded.ReceiptLong, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
                                 c.description ?: fallbackDash,
-                                color = TextPri,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -242,7 +231,7 @@ private fun ContributionsList(
                                 stringResource(R.string.rep_contrib_card_due_date, date) +
                                         "  •  " +
                                         stringResource(R.string.rep_contrib_card_total, formatter.format(c.montoTotal)),
-                                color = TextSec,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
@@ -252,11 +241,11 @@ private fun ContributionsList(
                             Icon(
                                 if (c.expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                                 contentDescription = null,
-                                tint = TextSec
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         IconButton(onClick = { onDelete(c.id) }) {
-                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_contrib_cd_delete), tint = Danger)
+                            Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_contrib_cd_delete), tint = MaterialTheme.colorScheme.error)
                         }
                     }
 
@@ -287,7 +276,7 @@ private fun ContributionDetailsList(
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(CardBg2)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -300,20 +289,20 @@ private fun ContributionDetailsList(
             ) {
                 val initial = d.displayName.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
                 Box(
-                    Modifier.size(36.dp).clip(CircleShape).background(Brand.copy(.18f)),
+                    Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(.18f)),
                     contentAlignment = Alignment.Center
-                ) { Text(initial, color = Brand, style = MaterialTheme.typography.labelLarge) }
+                ) { Text(initial, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge) }
 
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(d.displayName, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(d.displayName, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
                     val roleText = if (d.displayRole == "REPRESENTANTE") {
                         stringResource(R.string.rep_contrib_form_role_rep)
                     } else {
                         stringResource(R.string.rep_contrib_form_role_member)
                     }
-                    Text("$roleText • ${formatter.format(d.monto)}", color = TextSec, style = MaterialTheme.typography.bodySmall)
+                    Text("$roleText • ${formatter.format(d.monto)}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
 
                 StatusChip(d.status)
@@ -328,14 +317,14 @@ private fun ContributionDetailsList(
                             } else {
                                 receiptsText
                             },
-                            color = TextPri,
+                            color = if (d.pendingReceiptsCount > 0) WarningColor else MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = if (d.pendingReceiptsCount > 0) Color(0x33FFB300) else Color(0x332B2F3A),
-                        labelColor = TextPri
+                        containerColor = if (d.pendingReceiptsCount > 0) WarningColor.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -345,10 +334,10 @@ private fun ContributionDetailsList(
 
 @Composable private fun StatusChip(statusKey: String) {
     val (bg, fg, label) = when (statusKey.uppercase()) {
-        "PAGADO" -> Triple(Success.copy(.15f), Success, stringResource(R.string.rep_contrib_status_paid))
-        "EN_REVISION" -> Triple(Warning.copy(.12f), Warning, stringResource(R.string.rep_contrib_status_review))
-        "RECHAZADO" -> Triple(Danger.copy(.12f), Danger, stringResource(R.string.rep_contrib_status_rejected))
-        else -> Triple(Color(0x335E6A7D), TextSec, stringResource(R.string.rep_contrib_status_pending))
+        "PAGADO" -> Triple(SuccessColor.copy(.15f), SuccessColor, stringResource(R.string.rep_contrib_status_paid))
+        "EN_REVISION" -> Triple(WarningColor.copy(.12f), WarningColor, stringResource(R.string.rep_contrib_status_review))
+        "RECHAZADO" -> Triple(DangerColor.copy(.12f), DangerColor, stringResource(R.string.rep_contrib_status_rejected))
+        else -> Triple(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.onSurfaceVariant, stringResource(R.string.rep_contrib_status_pending))
     }
     AssistChip(
         onClick = {},
@@ -372,8 +361,9 @@ private fun CreateContributionSheet(
     var billsOpen by remember { mutableStateOf(false) }
     var datePickerOpen by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
-
     val fallbackInitial = stringResource(R.string.member_home_member_initial_fallback)
+
+    var showHelpDialog by remember { mutableStateOf(false) }
 
     if (datePickerOpen) {
         DatePickerDialog(
@@ -396,6 +386,40 @@ private fun CreateContributionSheet(
             DatePicker(state = datePickerState)
         }
     }
+    if (showHelpDialog) {
+        val isIncome = ui.formStrategy == "INCOME_BASED"
+        val titleId = if (isIncome) R.string.rep_contrib_form_strategy_help_income_title else R.string.rep_contrib_form_strategy_help_equal_title
+        val descId = if (isIncome) R.string.rep_contrib_form_strategy_help_income_desc else R.string.rep_contrib_form_strategy_help_equal_desc
+
+        AlertDialog(
+            onDismissRequest = { showHelpDialog = false },
+            title = { Text(stringResource(R.string.rep_contrib_form_strategy_help_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(titleId),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        stringResource(descId),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHelpDialog = false }) {
+                    Text(stringResource(R.string.common_close))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
 
     Column(
         Modifier
@@ -405,7 +429,7 @@ private fun CreateContributionSheet(
     ) {
         Text(
             stringResource(R.string.rep_contrib_form_title),
-            color = TextPri,
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -425,9 +449,14 @@ private fun CreateContributionSheet(
                     readOnly = true,
                     label = { Text(stringResource(R.string.rep_contrib_form_label_bill)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = billsOpen) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    colors = fieldColors()
                 )
-                ExposedDropdownMenu(expanded = billsOpen, onDismissRequest = { billsOpen = false }) {
+                ExposedDropdownMenu(
+                    expanded = billsOpen,
+                    onDismissRequest = { billsOpen = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                ) {
                     ui.allBills.forEach { b ->
                         DropdownMenuItem(
                             text = { Text(b.description ?: stringResource(R.string.memb_contribs_fallback_bill) + " #${b.id}") },
@@ -445,7 +474,8 @@ private fun CreateContributionSheet(
                 onValueChange = onDesc,
                 label = { Text(stringResource(R.string.rep_contrib_form_label_desc)) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = fieldColors()
             )
 
             OutlinedTextField(
@@ -455,13 +485,16 @@ private fun CreateContributionSheet(
                 label = { Text(stringResource(R.string.rep_contrib_form_label_due_date)) },
                 trailingIcon = {
                     IconButton(onClick = { datePickerOpen = true }) {
-                        Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
+                        Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = fieldColors()
             )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 FilterChip(
                     selected = ui.formStrategy == "EQUAL",
                     onClick = { onStrategy("EQUAL") },
@@ -472,42 +505,49 @@ private fun CreateContributionSheet(
                     onClick = { onStrategy("INCOME_BASED") },
                     label = { Text(stringResource(R.string.rep_contrib_form_strategy_income)) }
                 )
-            }
 
+                IconButton(onClick = { showHelpDialog = true }) {
+                    Icon(
+                        Icons.Rounded.Info,
+                        contentDescription = stringResource(R.string.rep_contrib_form_strategy_help_cd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Column(
                 Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .background(CardBg2)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(stringResource(R.string.rep_contrib_form_members_title), color = TextSec, style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.rep_contrib_form_members_title), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 ui.allMembers.forEach { m ->
                     val selected = ui.formSelectedMembers.contains(m.memberId)
                     Row(
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (selected) Brand.copy(.15f) else Color.Transparent)
+                            .background(if (selected) MaterialTheme.colorScheme.primary.copy(.15f) else Color.Transparent)
                             .clickable { onToggleMember(m.memberId) }
                             .padding(horizontal = 10.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val initial = m.username.trim().ifBlank { fallbackInitial }.first().uppercaseChar().toString()
                         Box(
-                            Modifier.size(28.dp).clip(CircleShape).background(Brand.copy(.18f)),
+                            Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(.18f)),
                             contentAlignment = Alignment.Center
-                        ) { Text(initial, color = Brand) }
+                        ) { Text(initial, color = MaterialTheme.colorScheme.primary) }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(m.username, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(m.username, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             val roleText = if (m.isRepresentative) {
                                 stringResource(R.string.rep_contrib_form_role_rep)
                             } else {
                                 stringResource(R.string.rep_contrib_form_role_member)
                             }
-                            Text(roleText, color = TextSec, style = MaterialTheme.typography.bodySmall)
+                            Text(roleText, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         }
                         Checkbox(checked = selected, onCheckedChange = { onToggleMember(m.memberId) })
                     }
@@ -525,12 +565,14 @@ private fun CreateContributionSheet(
         ) {
             OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) { Text(stringResource(R.string.rep_contrib_form_button_cancel)) }
             Button(
                 onClick = onSave,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = Brand)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) { Text(stringResource(R.string.rep_contrib_form_button_save)) }
         }
     }
@@ -554,7 +596,7 @@ private fun ReviewReceiptsSheet(
     ) {
         Text(
             stringResource(R.string.rep_contrib_review_title),
-            color = TextPri,
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -563,7 +605,7 @@ private fun ReviewReceiptsSheet(
         if (d != null) {
             Text(
                 "${d.displayName} • ${formatter.format(d.monto)}",
-                color = TextSec,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -571,11 +613,11 @@ private fun ReviewReceiptsSheet(
 
         if (ui.reviewLoading) {
             Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Brand)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             if (ui.reviewReceipts.isEmpty()) {
-                Text(stringResource(R.string.rep_contrib_review_empty), color = TextSec, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.rep_contrib_review_empty), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp))
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
@@ -583,18 +625,18 @@ private fun ReviewReceiptsSheet(
                 ) {
                     items(ui.reviewReceipts, key = { it.id }) { r ->
                         Surface(
-                            color = CardBg2,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(Modifier.fillMaxWidth().padding(12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = { onDownload(r) }) {
-                                        Icon(Icons.Rounded.Download, contentDescription = stringResource(R.string.rep_contrib_review_cd_download), tint = TextPri)
+                                        Icon(Icons.Rounded.Download, contentDescription = stringResource(R.string.rep_contrib_review_cd_download), tint = MaterialTheme.colorScheme.onSurface)
                                     }
                                     Column(Modifier.weight(1f)) {
-                                        Text(r.filename, color = TextPri, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                        Text(r.uploadedAt, color = TextSec, style = MaterialTheme.typography.bodySmall)
+                                        Text(r.filename, color = MaterialTheme.colorScheme.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(r.uploadedAt, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                                     }
                                     val status = r.status.uppercase()
                                     StatusChip(
@@ -614,13 +656,15 @@ private fun ReviewReceiptsSheet(
                                         onClick = { onApprove(r) },
                                         enabled = r.status.equals("PENDING", ignoreCase = true),
                                         modifier = Modifier.weight(1f),
-                                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = Success.copy(.15f))
-                                    ) { Text(stringResource(R.string.rep_contrib_review_button_approve), color = Success) }
+                                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = SuccessColor.copy(.15f))
+                                    ) { Text(stringResource(R.string.rep_contrib_review_button_approve), color = SuccessColor) }
                                     OutlinedButton(
                                         onClick = { onReject(r) },
                                         enabled = r.status.equals("PENDING", ignoreCase = true),
-                                        modifier = Modifier.weight(1f)
-                                    ) { Text(stringResource(R.string.rep_contrib_review_button_reject), color = Danger) }
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = DangerColor),
+                                        border = BorderStroke(1.dp, DangerColor.copy(alpha = 0.5f))
+                                    ) { Text(stringResource(R.string.rep_contrib_review_button_reject), color = DangerColor) }
                                 }
                             }
                         }
@@ -653,24 +697,37 @@ private fun SheetHandle() {
             Modifier
                 .size(width = 36.dp, height = 4.dp)
                 .clip(RoundedCornerShape(100))
-                .background(Border)
+                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.6f))
         )
     }
 }
 
 @Composable private fun ErrorBar(msg: String, onRetry: () -> Unit) {
-    Surface(color = Danger.copy(.12f)) {
+    Surface(color = MaterialTheme.colorScheme.errorContainer) {
         Row(
             Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(msg, color = Color(0xFFFFCDD2), modifier = Modifier.weight(1f))
-            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = Color.White) }
+            Text(msg, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = MaterialTheme.colorScheme.onErrorContainer) }
         }
     }
 }
+
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+)
 
 private fun formatPen(value: Double): String =
     NumberFormat.getCurrencyInstance(Locale("es", "PE")).apply {

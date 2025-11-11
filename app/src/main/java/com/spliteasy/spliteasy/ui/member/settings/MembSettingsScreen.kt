@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,15 +33,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.animation.core.tween
+import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
 import kotlinx.coroutines.delay
-
-private val BrandPrimary = Color(0xFF1565C0)
-private val DangerColor  = Color(0xFFD32F2F)
-private val BgMain       = Color(0xFF1A1A1A)
-private val BgCard       = Color(0xFF2D2D2D)
-private val Border       = Color(0xFF404040)
-private val TextPri      = Color(0xFFF8F9FA)
-private val TextSec      = Color(0xFFADB5BD)
 
 @Composable
 fun MembSettingsScreen(
@@ -81,13 +73,13 @@ fun MembSettingsScreen(
     }
 
     Scaffold(
-        containerColor = BgMain,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbar) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BgMain)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .imePadding(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
@@ -96,13 +88,13 @@ fun MembSettingsScreen(
             item {
                 Text(
                     stringResource(R.string.settings_title),
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     stringResource(R.string.settings_subtitle),
-                    color = TextSec,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -136,7 +128,7 @@ fun MembSettingsScreen(
                     Button(
                         onClick = { vm.saveProfile { _, msg -> showSnack(msg) } },
                         enabled = ui.canSubmitProfile && !ui.isLoading,
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) { Text(stringResource(R.string.settings_profile_save)) }
                 }
             }
@@ -180,7 +172,7 @@ fun MembSettingsScreen(
                             if (confirmPwd.isNotEmpty() && confirmPwd != newPwd)
                                 Text(
                                     stringResource(R.string.settings_security_pass_mismatch),
-                                    color = DangerColor
+                                    color = MaterialTheme.colorScheme.error
                                 )
                         },
                         colors = fieldColors()
@@ -198,13 +190,13 @@ fun MembSettingsScreen(
                             }
                         },
                         enabled = currentPwd.isNotBlank() && newPwd.isNotBlank() && confirmPwd.isNotBlank() && !ui.isLoading,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF57C00))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) { Text(stringResource(R.string.settings_security_save)) }
                 }
             }
 
             item {
-                SettingsCard(borderColor = DangerColor) {
+                SettingsCard(borderColor = MaterialTheme.colorScheme.error) {
                     SectionHeader(
                         icon = "⚠️",
                         title = stringResource(R.string.settings_danger_title),
@@ -213,12 +205,12 @@ fun MembSettingsScreen(
                     Spacer(Modifier.height(8.dp))
                     Text(
                         stringResource(R.string.settings_danger_desc),
-                        color = TextSec
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { showDeleteDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = DangerColor)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) { Text(stringResource(R.string.settings_danger_delete_account)) }
                 }
             }
@@ -233,12 +225,23 @@ fun MembSettingsScreen(
                     LanguageSwitchComponent()
                 }
             }
+            item {
+                SettingsCard {
+                    SectionHeader(
+                        icon = "🌗",
+                        title = stringResource(R.string.theme_title),
+                        subtitle = stringResource(R.string.theme_subtitle)
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    ThemeSwitchComponent()
+                }
+            }
             item { Spacer(Modifier.height(100.dp)) }
         }
 
         if (ui.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = BrandPrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         }
         AnimatedVisibility(
@@ -249,32 +252,32 @@ fun MembSettingsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(BgMain)
+                    .background(MaterialTheme.colorScheme.background)
                     .systemBarsPadding()
                     .navigationBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = BrandPrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         }
 
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text(stringResource(R.string.settings_dialog_delete_title), color = TextPri) },
-                text = { Text(stringResource(R.string.settings_dialog_delete_text), color = TextSec) },
+                title = { Text(stringResource(R.string.settings_dialog_delete_title), color = MaterialTheme.colorScheme.onSurface) },
+                text = { Text(stringResource(R.string.settings_dialog_delete_text), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 confirmButton = {
                     TextButton(onClick = {
                         showDeleteDialog = false
                         vm.deleteAccount(onDeleted = onDeleted) { msg -> showSnack(msg) }
-                    }) { Text(stringResource(R.string.settings_dialog_delete_confirm), color = DangerColor) }
+                    }) { Text(stringResource(R.string.settings_dialog_delete_confirm), color = MaterialTheme.colorScheme.error) }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text(stringResource(R.string.settings_dialog_delete_cancel), color = TextPri)
+                        Text(stringResource(R.string.settings_dialog_delete_cancel), color = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                containerColor = BgCard
+                containerColor = MaterialTheme.colorScheme.surface
             )
         }
     }
@@ -303,8 +306,8 @@ fun LanguageSwitchComponent(
     Box(modifier = modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(buttonText)
@@ -317,10 +320,10 @@ fun LanguageSwitchComponent(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(Color(0xFF2D2D2D))
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.language_current_es), color = Color.White) },
+                text = { Text(stringResource(R.string.language_current_es), color = MaterialTheme.colorScheme.onSurface) },
                 onClick = {
                     vm.setLanguage("es")
                     expanded = false
@@ -328,7 +331,7 @@ fun LanguageSwitchComponent(
                 enabled = currentLang != "es"
             )
             DropdownMenuItem(
-                text = { Text(stringResource(R.string.language_current_en), color = Color.White) },
+                text = { Text(stringResource(R.string.language_current_en), color = MaterialTheme.colorScheme.onSurface) },
                 onClick = {
                     vm.setLanguage("en")
                     expanded = false
@@ -341,12 +344,12 @@ fun LanguageSwitchComponent(
 
 @Composable
 private fun SettingsCard(
-    borderColor: Color = Border,
+    borderColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.outline,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BgCard,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         tonalElevation = 0.dp,
         shadowElevation = 2.dp,
@@ -361,23 +364,51 @@ private fun SettingsCard(
         Text(icon, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.width(8.dp))
         Column {
-            Text(title, color = TextPri, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, color = TextSec, style = MaterialTheme.typography.bodySmall)
+            Text(title, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
 @Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = BrandPrimary,
-    unfocusedBorderColor = Border,
-    focusedTextColor = TextPri,
-    unfocusedTextColor = TextPri,
-    cursorColor = BrandPrimary,
-    focusedLabelColor = BrandPrimary,
-    unfocusedLabelColor = TextSec
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
 )
 
 private suspend fun show(host: SnackbarHostState, msg: String) {
     host.currentSnackbarData?.dismiss()
     host.showSnackbar(message = msg, withDismissAction = true)
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeSwitchComponent(
+    modifier: Modifier = Modifier,
+    vm: ThemeViewModel = hiltViewModel()
+) {
+    val currentTheme by vm.theme.collectAsState()
+
+    val options = listOf(
+        "LIGHT" to stringResource(R.string.theme_light),
+        "SYSTEM" to stringResource(R.string.theme_system),
+        "DARK" to stringResource(R.string.theme_dark)
+    )
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { (key, label) ->
+            FilterChip(
+                selected = (currentTheme == key),
+                onClick = { vm.setTheme(key) },
+                label = { Text(label) },
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
+    }
 }

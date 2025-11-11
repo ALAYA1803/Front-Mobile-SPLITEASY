@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.ReceiptLong
@@ -27,19 +26,13 @@ import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
+import com.spliteasy.spliteasy.ui.theme.InfoColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
 
-private val BrandPrimary   = Color(0xFF1565C0)
-private val BrandSecondary = Color(0xFFFF6F00)
-private val SuccessColor   = Color(0xFF2E7D32)
-private val InfoColor      = Color(0xFF4F46E5)
-
-private val BgMain        = Color(0xFF1A1A1A)
-private val CardBg        = Color(0xFF2D2D2D)
-private val BorderColor   = Color(0xFF404040)
-private val TextPrimary   = Color(0xFFF8F9FA)
-private val TextSecondary = Color(0xFFADB5BD)
 
 @Composable
 fun RepHomeScreen(
@@ -49,10 +42,10 @@ fun RepHomeScreen(
     val ui by vm.ui.collectAsState()
     LaunchedEffect(Unit) { vm.load() }
 
-    Surface(Modifier.fillMaxSize(), color = BgMain) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         when {
             ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = BrandPrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             ui.error != null -> ErrorBox(
                 message = ui.error ?: stringResource(R.string.member_home_error_generic),
@@ -75,7 +68,7 @@ private fun OnboardingCard(onCreate: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Surface(
-            color = CardBg,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
@@ -83,7 +76,7 @@ private fun OnboardingCard(onCreate: () -> Unit) {
                 enabled = true
             ).copy(
                 width = 1.dp,
-                brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
+                brush = SolidColor(MaterialTheme.colorScheme.outline)
             )
         ) {
             Column(
@@ -93,18 +86,18 @@ private fun OnboardingCard(onCreate: () -> Unit) {
             ) {
                 Text(
                     stringResource(R.string.rep_home_onboarding_welcome),
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
                     stringResource(R.string.rep_home_onboarding_subtitle),
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.height(6.dp))
                 Button(
                     onClick = onCreate,
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) { Text(stringResource(R.string.rep_home_onboarding_button)) }
             }
         }
@@ -139,14 +132,14 @@ private fun Dashboard(ui: RepHomeUi) {
                             title = stringResource(R.string.rep_home_stat_members),
                             value = ui.membersCount,
                             icon = Icons.Rounded.Groups,
-                            tint = BrandPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
                         )
                         StatCard(
                             title = stringResource(R.string.rep_home_stat_bills),
                             value = ui.billsCount,
                             icon = Icons.Rounded.ReceiptLong,
-                            tint = BrandSecondary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -173,9 +166,9 @@ private fun Hero(
     currency: String
 ) {
     val gradient = Brush.verticalGradient(
-        listOf(BrandPrimary.copy(alpha = .22f), Color.Transparent)
+        listOf(MaterialTheme.colorScheme.primary.copy(alpha = .22f), Color.Transparent)
     )
-    Surface(color = BgMain) {
+    Surface(color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,20 +178,20 @@ private fun Hero(
         ) {
             Text(
                 stringResource(R.string.rep_home_dashboard_title),
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.labelLarge
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = if (householdName.isBlank()) stringResource(R.string.common_fallback_dash) else householdName,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             if (householdDesc.isNotBlank()) {
                 Spacer(Modifier.height(6.dp))
-                Text(householdDesc, color = TextSecondary)
+                Text(householdDesc, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(Modifier.height(14.dp))
@@ -212,26 +205,30 @@ private fun Hero(
                     label = { Text(stringResource(R.string.rep_home_dashboard_currency, currency)) },
                     leadingIcon = { /* … */ },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = CardBg,
-                        labelColor = TextPrimary
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    border = BorderStroke(1.dp, BorderColor)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 )
                 AssistChip(
                     onClick = {},
                     label = { Text(stringResource(R.string.rep_home_dashboard_status_active)) },
                     leadingIcon = {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = SuccessColor)
+                        Icon(
+                            Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = SuccessColor
+                        )
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = CardBg,
-                        labelColor = TextPrimary
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    border = BorderStroke(1.dp, BorderColor)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 )
             }
             Spacer(Modifier.height(8.dp))
-            HorizontalDivider(color = BorderColor)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         }
     }
 }
@@ -248,9 +245,21 @@ private fun QuickActionsRow(
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ActionChip(stringResource(R.string.rep_home_action_members), Icons.Rounded.Groups, BrandPrimary) { onMembers?.invoke() }
-        ActionChip(stringResource(R.string.rep_home_action_bills), Icons.Rounded.ReceiptLong, BrandSecondary) { onBills?.invoke() }
-        ActionChip(stringResource(R.string.rep_home_action_contributions), Icons.Rounded.Wallet, InfoColor) { onContrib?.invoke() }
+        ActionChip(
+            stringResource(R.string.rep_home_action_members),
+            Icons.Rounded.Groups,
+            MaterialTheme.colorScheme.primary
+        ) { onMembers?.invoke() }
+        ActionChip(
+            stringResource(R.string.rep_home_action_bills),
+            Icons.Rounded.ReceiptLong,
+            MaterialTheme.colorScheme.secondary
+        ) { onBills?.invoke() }
+        ActionChip(
+            stringResource(R.string.rep_home_action_contributions),
+            Icons.Rounded.Wallet,
+            InfoColor
+        ) { onContrib?.invoke() }
     }
     Spacer(Modifier.height(4.dp))
 }
@@ -258,7 +267,7 @@ private fun QuickActionsRow(
 @Composable
 private fun ActionChip(
     text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     tint: Color,
     onClick: () -> Unit
 ) {
@@ -267,12 +276,12 @@ private fun ActionChip(
         onClick = onClick,
         enabled = true,
         label = { Text(text) },
-        leadingIcon = { /* … */ },
+        leadingIcon = { Icon(icon, contentDescription = null, tint = tint) },
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = CardBg,
-            labelColor = TextPrimary
+            containerColor = MaterialTheme.colorScheme.surface,
+            labelColor = MaterialTheme.colorScheme.onSurface
         ),
-        border = BorderStroke(1.dp, BorderColor),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         shape = RoundedCornerShape(12.dp)
     )
 }
@@ -286,7 +295,7 @@ private fun Section(
         Text(
             title,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
         )
         content()
@@ -297,7 +306,7 @@ private fun Section(
 private fun StatCard(
     title: String,
     value: Int,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     tint: Color,
     modifier: Modifier = Modifier
 ) {
@@ -306,7 +315,7 @@ private fun StatCard(
     ElevatedCard(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = CardBg),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -326,12 +335,15 @@ private fun StatCard(
             }
             Spacer(Modifier.width(12.dp))
             Column {
-                Text(title, style = MaterialTheme.typography.labelLarge.copy(color = TextSecondary))
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
                 Text(
                     animated.toString(),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -348,13 +360,21 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(
+            stringResource(R.string.common_error_oops),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.error
+        )
         Spacer(Modifier.height(8.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) { Text(stringResource(R.string.common_retry)) }
     }
 }

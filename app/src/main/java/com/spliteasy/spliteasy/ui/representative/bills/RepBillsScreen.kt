@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,15 +31,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
 
-private val BrandPrimary = Color(0xFF1565C0)
-private val BrandPrimarySoft = Color(0x331565C0)
-private val BgMain = Color(0xFF1A1A1A)
-private val CardBg = Color(0xFF1B1E24)
-private val CardBgElev = Color(0xFF222632)
-private val Border = Color(0xFF2B2F3A)
-private val TextPri = Color(0xFFF3F4F6)
-private val TextSec = Color(0xFF9AA0A6)
-private val Danger = Color(0xFFE53935)
+
 
 @Composable
 fun RepBillsScreen(
@@ -65,7 +56,7 @@ fun RepBillsScreen(
     else
         billsInfoText
 
-    Surface(Modifier.fillMaxSize(), color = BgMain) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
 
             Column(Modifier.fillMaxSize()) {
@@ -97,8 +88,8 @@ fun RepBillsScreen(
             if (ui.isRepresentante) {
                 ExtendedFloatingActionButton(
                     onClick = { vm.openForm(null) },
-                    containerColor = BrandPrimary,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(16.dp),
@@ -141,7 +132,11 @@ private fun TopHeader(
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
-                    listOf(BgMain, BgMain, CardBg.copy(alpha = .35f))
+                    listOf(
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surface.copy(alpha = .35f)
+                    )
                 )
             )
             .padding(top = 12.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
@@ -150,13 +145,13 @@ private fun TopHeader(
             Column(Modifier.weight(1f)) {
                 Text(
                     title,
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     subtitle,
-                    color = TextSec,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -165,27 +160,27 @@ private fun TopHeader(
                 label = {
                     Text(
                         rightInfo,
-                        color = TextPri,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 },
                 colors = AssistChipDefaults.assistChipColors(
-                    labelColor = TextPri,
-                    containerColor = CardBg
+                    labelColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
         Spacer(Modifier.height(10.dp))
-        Divider(color = Border, thickness = 1.dp)
+        Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
     }
 }
 
 @Composable
 private fun ErrorBar(msg: String, onRetry: () -> Unit) {
     Surface(
-        color = Danger.copy(alpha = 0.12f),
-        contentColor = Color.White,
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
         tonalElevation = 0.dp
     ) {
         Row(
@@ -194,8 +189,8 @@ private fun ErrorBar(msg: String, onRetry: () -> Unit) {
                 .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(msg, color = Color(0xFFFFCDD2), modifier = Modifier.weight(1f))
-            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = Color.White) }
+            Text(msg, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+            TextButton(onClick = onRetry) { Text(stringResource(R.string.rep_bills_error_retry), color = MaterialTheme.colorScheme.onErrorContainer) }
         }
     }
 }
@@ -210,21 +205,24 @@ private fun LoadingListSkeleton() {
     ) {
         repeat(4) {
             Surface(
-                color = CardBg,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, Border)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(92.dp)
-                        .background(CardBg)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(16.dp)
                 ) {
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .background(BrandPrimarySoft, RoundedCornerShape(16.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                RoundedCornerShape(16.dp)
+                            )
                     )
                 }
             }
@@ -277,10 +275,10 @@ private fun BillRowCard(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = CardBg,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, Border)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Row(
             modifier = Modifier
@@ -294,7 +292,7 @@ private fun BillRowCard(
             ) {
                 Text(
                     text = bill.monto?.let { currencyFormat.format(it) } ?: currencyDefault,
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
                 Spacer(Modifier.height(2.dp))
@@ -302,14 +300,14 @@ private fun BillRowCard(
                     onClick = {},
                     label = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
+                            Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(6.dp))
-                            Text(bill.fecha ?: fallbackDash, color = TextSec)
+                            Text(bill.fecha ?: fallbackDash, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = CardBgElev,
-                        labelColor = TextSec
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }
@@ -319,14 +317,12 @@ private fun BillRowCard(
             Column(Modifier.weight(1f)) {
                 Text(
                     bill.description ?: fallbackDash,
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(Modifier.height(6.dp))
-
-
             }
 
             if (isRepresentante) {
@@ -337,18 +333,20 @@ private fun BillRowCard(
                 ) {
                     OutlinedIconButton(
                         onClick = onEdit,
-                        border = BorderStroke(1.dp, Border),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = IconButtonDefaults.outlinedIconButtonColors(
-                            containerColor = CardBgElev, contentColor = TextSec
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     ) {
                         Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.rep_bills_cd_edit))
                     }
                     OutlinedIconButton(
                         onClick = onDelete,
-                        border = BorderStroke(1.dp, Border),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = IconButtonDefaults.outlinedIconButtonColors(
-                            containerColor = CardBgElev, contentColor = Danger
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
                         Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.rep_bills_cd_delete))
@@ -372,17 +370,17 @@ private fun EmptyState() {
             modifier = Modifier
                 .size(88.dp)
                 .clip(CircleShape)
-                .background(CardBg),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
-            Text("∑", color = BrandPrimary, style = MaterialTheme.typography.headlineSmall)
+            Text("∑", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineSmall)
         }
         Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.rep_bills_empty_title), color = TextPri, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.rep_bills_empty_title), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(6.dp))
         Text(
             stringResource(R.string.rep_bills_empty_subtitle),
-            color = TextSec,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -407,20 +405,20 @@ private fun BillDialog(
         confirmButton = {
             Button(
                 onClick = onSave,
-                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) { Text(stringResource(R.string.rep_bills_dialog_save)) }
         },
         dismissButton = {
             OutlinedButton(
                 onClick = onCancel,
-                border = BorderStroke(1.dp, Border),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPri)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) { Text(stringResource(R.string.rep_bills_dialog_cancel)) }
         },
         title = {
             Text(
                 title,
-                color = TextPri,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
         },
@@ -431,15 +429,7 @@ private fun BillDialog(
                     onValueChange = onDesc,
                     label = { Text(stringResource(R.string.rep_bills_dialog_label_desc)) },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrandPrimary,
-                        unfocusedBorderColor = Border,
-                        focusedLabelColor = BrandPrimary,
-                        unfocusedLabelColor = TextSec,
-                        cursorColor = BrandPrimary,
-                        focusedTextColor = TextPri,
-                        unfocusedTextColor = TextPri
-                    )
+                    colors = fieldColors()
                 )
                 OutlinedTextField(
                     value = amount,
@@ -447,15 +437,7 @@ private fun BillDialog(
                     label = { Text(stringResource(R.string.rep_bills_dialog_label_amount, currency)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrandPrimary,
-                        unfocusedBorderColor = Border,
-                        focusedLabelColor = BrandPrimary,
-                        unfocusedLabelColor = TextSec,
-                        cursorColor = BrandPrimary,
-                        focusedTextColor = TextPri,
-                        unfocusedTextColor = TextPri
-                    )
+                    colors = fieldColors()
                 )
                 OutlinedTextField(
                     value = date,
@@ -463,26 +445,28 @@ private fun BillDialog(
                     label = { Text(stringResource(R.string.rep_bills_dialog_label_date)) },
                     singleLine = true,
                     leadingIcon = {
-                        Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = TextSec)
+                        Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrandPrimary,
-                        unfocusedBorderColor = Border,
-                        focusedLabelColor = BrandPrimary,
-                        unfocusedLabelColor = TextSec,
-                        cursorColor = BrandPrimary,
-                        focusedTextColor = TextPri,
-                        unfocusedTextColor = TextPri
-                    )
+                    colors = fieldColors()
                 )
             }
         },
-        containerColor = CardBg,
-        titleContentColor = TextPri,
-        textContentColor = TextSec,
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         shape = RoundedCornerShape(20.dp)
     )
 }
+
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+)
 
 private fun currencyFormatter(code: String): NumberFormat {
     val locale = if (code == "PEN") Locale("es", "PE") else Locale.getDefault()

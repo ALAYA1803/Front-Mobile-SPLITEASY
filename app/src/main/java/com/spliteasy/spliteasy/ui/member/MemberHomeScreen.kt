@@ -19,26 +19,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.spliteasy.spliteasy.R
+import com.spliteasy.spliteasy.ui.theme.InfoColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
 import java.text.NumberFormat
 import java.util.*
-import androidx.compose.ui.res.stringResource
-import com.spliteasy.spliteasy.R
-
-
-private val BrandPrimary   = Color(0xFF1565C0)
-private val BrandSecondary = Color(0xFFFF6F00)
-private val SuccessColor   = Color(0xFF2E7D32)
-private val InfoColor      = Color(0xFF4F46E5)
-
-private val BgMain         = Color(0xFF1A1A1A)
-private val CardBg         = Color(0xFF2D2D2D)
-private val BorderColor    = Color(0xFF404040)
-private val TextPrimary    = Color(0xFFF8F9FA)
-private val TextSecondary  = Color(0xFFADB5BD)
 
 @Composable
 fun MemberHomeScreen(
@@ -52,11 +44,11 @@ fun MemberHomeScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BgMain
+        color = MaterialTheme.colorScheme.background
     ) {
         when (val s = state) {
             is MemberHomeUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = BrandPrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             is MemberHomeUiState.Error -> ErrorBox(
                 message = s.message ?: stringResource(R.string.member_home_error_generic),
@@ -96,7 +88,7 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                         title = stringResource(R.string.member_home_stat_pending),
                         value = fmt.format(s.totalPending),
                         icon = Icons.Rounded.Wallet,
-                        tint = BrandSecondary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.weight(1f)
                     )
                     StatCard(
@@ -119,7 +111,7 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                         title = stringResource(R.string.member_home_stat_members),
                         value = s.members.size.toString(),
                         icon = Icons.Rounded.Groups,
-                        tint = BrandPrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -140,7 +132,11 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                     isRep = m.roles.any { it.equals("ROLE_REPRESENTANTE", ignoreCase = true) },
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Divider(color = BorderColor, thickness = 1.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                Divider(
+                    color = MaterialTheme.colorScheme.outline,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
             item { Spacer(Modifier.height(8.dp)) }
         }
@@ -155,14 +151,17 @@ private fun HeroHeader(
     householdDescription: String
 ) {
     val gradient = Brush.verticalGradient(
-        colors = listOf(BrandPrimary.copy(alpha = 0.18f), InfoColor.copy(alpha = 0.10f))
+        colors = listOf(
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+            InfoColor.copy(alpha = 0.10f)
+        )
     )
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        color = BgMain
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(
             modifier = Modifier
@@ -174,27 +173,27 @@ private fun HeroHeader(
                 Text(
                     text = stringResource(R.string.member_home_hero_greeting, userName),
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        color = TextPrimary,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold
                     )
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.member_home_hero_subtitle),
-                    style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Spacer(Modifier.height(12.dp))
 
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = CardBg,
+                    color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp,
                     shadowElevation = 0.dp,
                     border = ButtonDefaults.outlinedButtonBorder(
                         enabled = true
                     ).copy(
                         width = 1.dp,
-                        brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
+                        brush = SolidColor(MaterialTheme.colorScheme.outline)
                     )
                 ) {
                     Column(Modifier.padding(16.dp)) {
@@ -202,14 +201,14 @@ private fun HeroHeader(
                             Icon(
                                 imageVector = Icons.Rounded.AccountTree,
                                 contentDescription = null,
-                                tint = BrandPrimary
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 householdName,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -217,7 +216,7 @@ private fun HeroHeader(
                             Spacer(Modifier.height(6.dp))
                             Text(
                                 householdDescription,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary)
+                                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
                     }
@@ -231,21 +230,21 @@ private fun HeroHeader(
 private fun StatCard(
     title: String,
     value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     tint: Color,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = CardBg,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = ButtonDefaults.outlinedButtonBorder(
             enabled = true
         ).copy(
             width = 1.dp,
-            brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
+            brush = SolidColor(MaterialTheme.colorScheme.outline)
         )
     ) {
         Row(
@@ -267,13 +266,13 @@ private fun StatCard(
             Column {
                 Text(
                     title,
-                    style = MaterialTheme.typography.labelLarge.copy(color = TextSecondary)
+                    style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Text(
                     value,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
@@ -287,7 +286,7 @@ private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
         text = text,
         style = MaterialTheme.typography.titleMedium.copy(
             fontWeight = FontWeight.SemiBold,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onBackground
         ),
         modifier = modifier.padding(top = 4.dp, bottom = 4.dp)
     )
@@ -313,13 +312,13 @@ private fun MemberRow(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(BrandPrimary.copy(alpha = 0.18f)),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 initial,
                 style = MaterialTheme.typography.titleMedium.copy(
-                    color = BrandPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             )
@@ -332,7 +331,7 @@ private fun MemberRow(
                 name,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -340,7 +339,7 @@ private fun MemberRow(
             if (email.isNotBlank()) {
                 Text(
                     email,
-                    style = MaterialTheme.typography.bodyMedium.copy(color = TextSecondary),
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -358,8 +357,8 @@ private fun RoleTag(role: String, highlighted: Boolean) {
         else -> stringResource(R.string.member_home_role_member)
     }
 
-    val bg = if (highlighted) BrandPrimary.copy(alpha = 0.25f) else Color(0xFF3A3A3A)
-    val fg = if (highlighted) TextPrimary else TextSecondary
+    val bg = if (highlighted) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceVariant
+    val fg = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
         color = bg,
         contentColor = fg,
@@ -370,7 +369,7 @@ private fun RoleTag(role: String, highlighted: Boolean) {
             enabled = true
         ).copy(
             width = if (highlighted) 1.dp else 0.dp,
-            brush = androidx.compose.ui.graphics.SolidColor(BorderColor)
+            brush = SolidColor(MaterialTheme.colorScheme.outline)
         )
     ) {
         Text(
@@ -390,13 +389,17 @@ private fun ErrorBox(message: String, onRetry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.common_error_oops), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF4D4F))
+        Text(
+            stringResource(R.string.common_error_oops),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.error
+        )
         Spacer(Modifier.height(8.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text(stringResource(R.string.common_retry))
         }
@@ -412,9 +415,9 @@ private fun EmptyBox(message: String) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.common_empty_title), style = MaterialTheme.typography.titleLarge, color = TextPrimary)
+        Text(stringResource(R.string.common_empty_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(8.dp))
-        Text(message, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

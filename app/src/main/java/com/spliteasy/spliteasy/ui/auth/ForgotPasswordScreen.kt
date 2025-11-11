@@ -12,23 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-
-
-private val BrandPrimary = Color(0xFF1565C0)
-private val BgMain = Color(0xFF2D2D2D)
-private val CardBg = Color(0xFF1B1E24)
-private val CardBgElev = Color(0xFF222632)
-private val Border = Color(0xFF2B2F3A)
-private val TextPri = Color(0xFFF3F4F6)
-private val TextSec = Color(0xFF9AA0A6)
-private val Danger = Color(0xFFE53935)
-private val Success = Color(0xFF43A047)
+import com.spliteasy.spliteasy.ui.theme.DangerColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
 
 @Composable
 fun ForgotPasswordScreen(
@@ -44,7 +35,7 @@ fun ForgotPasswordScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -68,14 +59,14 @@ fun ForgotPasswordScreen(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = stringResource(R.string.forgot_password_back_cd),
-                        tint = TextSec
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.forgot_password_title),
                     style = MaterialTheme.typography.titleLarge.copy(
-                        color = TextPri,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 22.sp
                     )
@@ -87,7 +78,7 @@ fun ForgotPasswordScreen(
                     .fillMaxWidth()
                     .widthIn(max = 460.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBg),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
@@ -96,20 +87,20 @@ fun ForgotPasswordScreen(
                         .padding(28.dp)
                 ) {
                     Text(
-                    stringResource(R.string.forgot_password_card_title),
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        color = TextPri,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
+                        stringResource(R.string.forgot_password_card_title),
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
                     )
-                )
 
                     Spacer(Modifier.height(8.dp))
 
                     Text(
                         stringResource(R.string.forgot_password_card_subtitle),
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = TextSec,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 14.sp,
                             lineHeight = 20.sp
                         )
@@ -119,7 +110,7 @@ fun ForgotPasswordScreen(
 
                     Text(
                         stringResource(R.string.forgot_password_email_label),
-                        color = TextPri,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp
@@ -134,38 +125,23 @@ fun ForgotPasswordScreen(
                         placeholder = {
                             Text(
                                 stringResource(R.string.forgot_password_email_placeholder),
-                                color = TextSec.copy(alpha = 0.6f),
                                 fontSize = 15.sp
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Email,
-                                contentDescription = null,
-                                tint = TextSec
+                                contentDescription = null
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             fontSize = 15.sp,
-                            color = TextPri
+                            color = MaterialTheme.colorScheme.onSurface
                         ),
                         isError = (error != null && success == null),
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextPri,
-                            unfocusedTextColor = TextPri,
-                            cursorColor = BrandPrimary,
-                            focusedBorderColor = BrandPrimary,
-                            unfocusedBorderColor = Border,
-                            errorBorderColor = Danger,
-                            focusedContainerColor = CardBgElev,
-                            unfocusedContainerColor = CardBgElev,
-                            errorContainerColor = CardBgElev,
-                            focusedLeadingIconColor = BrandPrimary,
-                            unfocusedLeadingIconColor = TextSec,
-                            errorLeadingIconColor = Danger
-                        )
+                        colors = fieldColors()
                     )
 
                     if (error != null && success == null) {
@@ -176,7 +152,7 @@ fun ForgotPasswordScreen(
                         ) {
                             Text(
                                 error,
-                                color = Danger,
+                                color = DangerColor,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 13.sp
                                 )
@@ -190,7 +166,7 @@ fun ForgotPasswordScreen(
                         ) {
                             Text(
                                 success,
-                                color = Success,
+                                color = SuccessColor,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 13.sp
                                 )
@@ -211,10 +187,10 @@ fun ForgotPasswordScreen(
                         enabled = !loading && email.isNotBlank(),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BrandPrimary,
-                            contentColor = Color.White,
-                            disabledContainerColor = BrandPrimary.copy(alpha = 0.5f),
-                            disabledContentColor = Color.White.copy(alpha = 0.7f)
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -241,7 +217,7 @@ fun ForgotPasswordScreen(
                     Spacer(Modifier.height(20.dp))
 
                     Divider(
-                        color = Border,
+                        color = MaterialTheme.colorScheme.outline,
                         thickness = 1.dp,
                         modifier = Modifier.padding(vertical = 4.dp)
                     )
@@ -255,14 +231,14 @@ fun ForgotPasswordScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.forgot_password_prompt_login),
-                            color = TextSec,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontSize = 14.sp
                             )
                         )
                         Text(
                             text = stringResource(R.string.forgot_password_prompt_login_link),
-                            color = BrandPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
@@ -280,3 +256,24 @@ fun ForgotPasswordScreen(
         }
     }
 }
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    errorBorderColor = MaterialTheme.colorScheme.error,
+    errorLeadingIconColor = MaterialTheme.colorScheme.error
+)

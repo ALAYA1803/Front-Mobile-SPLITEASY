@@ -5,12 +5,17 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.core.Routes
 import com.spliteasy.spliteasy.ui.navigation.AppNav
 import com.spliteasy.spliteasy.ui.theme.SplitEasyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import com.spliteasy.spliteasy.data.local.TokenDataStore
 import kotlinx.coroutines.flow.first
+import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
@@ -20,7 +25,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SplitEasyTheme {
+            val themeViewModel: ThemeViewModel = hiltViewModel()
+            val theme by themeViewModel.theme.collectAsState()
+
+            val useDarkTheme = when (theme) {
+                "LIGHT" -> false
+                "DARK" -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            SplitEasyTheme(darkTheme = useDarkTheme) {
                 AppNav(startDestination = Routes.LOGIN)
             }
         }

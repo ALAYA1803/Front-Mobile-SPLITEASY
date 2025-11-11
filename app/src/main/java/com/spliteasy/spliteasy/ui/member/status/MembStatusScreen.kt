@@ -17,25 +17,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.spliteasy.spliteasy.R
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
+import com.spliteasy.spliteasy.ui.theme.WarningColor
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
-import androidx.compose.ui.res.stringResource
-import com.spliteasy.spliteasy.R
-
-private val BrandPrimary   = Color(0xFF1565C0)
-private val SuccessColor   = Color(0xFF2E7D32)
-private val WarningColor   = Color(0xFFFF8F00)
-private val BgMain         = Color(0xFF1A1A1A)
-private val BgCard         = Color(0xFF2D2D2D)
-private val Border         = Color(0xFF404040)
-private val TextPri        = Color(0xFFF8F9FA)
-private val TextSec        = Color(0xFFADB5BD)
 
 @Composable
 fun MembStatusScreen(vm: MembStatusViewModel = hiltViewModel()) {
@@ -45,11 +37,11 @@ fun MembStatusScreen(vm: MembStatusViewModel = hiltViewModel()) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BgMain
+        color = MaterialTheme.colorScheme.background
     ) {
         when (val s = state) {
             is StatusUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = BrandPrimary)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             is StatusUiState.Error -> StatusMessage(
                 title = stringResource(R.string.common_empty_title),
@@ -70,20 +62,20 @@ private fun StatusList(rows: List<StatusRowUi>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             Text(
                 stringResource(R.string.memb_status_title),
-                color = TextPri,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 stringResource(R.string.memb_status_subtitle),
-                color = TextSec,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -102,7 +94,7 @@ private fun StatusList(rows: List<StatusRowUi>) {
                 ) {
                     Text(
                         stringResource(R.string.memb_status_empty_list),
-                        color = TextSec,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -116,7 +108,7 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = BgCard,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 2.dp
     ) {
@@ -125,7 +117,7 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
                 val (badgeBg, badgeFg, badgeText) = when (row.statusUi) {
                     "PAGADO"      -> Triple(SuccessColor.copy(alpha = .15f), SuccessColor, stringResource(R.string.memb_status_status_paid))
                     "EN_REVISION" -> Triple(WarningColor.copy(alpha = .15f), WarningColor, stringResource(R.string.memb_status_status_review))
-                    else          -> Triple(BrandPrimary.copy(alpha = .15f), BrandPrimary, stringResource(R.string.memb_status_status_pending))
+                    else          -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = .15f), MaterialTheme.colorScheme.primary, stringResource(R.string.memb_status_status_pending))
                 }
 
                 Box(
@@ -141,7 +133,7 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
 
                 Text(
                     text = row.descripcionFactura ?: stringResource(R.string.memb_status_fallback_bill_desc),
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -151,13 +143,13 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = amountText,
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                 )
             }
 
             Spacer(Modifier.height(8.dp))
-            Divider(color = Border, thickness = 1.dp)
+            Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
             Spacer(Modifier.height(8.dp))
 
             val fallbackDash = stringResource(R.string.common_fallback_dash)
@@ -174,9 +166,9 @@ private fun StatusCard(row: StatusRowUi, amountText: String) {
 @Composable
 private fun InfoRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = TextSec, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(110.dp))
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(110.dp))
         Spacer(Modifier.width(8.dp))
-        Text(value, color = TextPri, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -185,14 +177,14 @@ private fun StatusMessage(title: String, message: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(title, color = TextPri, style = MaterialTheme.typography.titleLarge)
+        Text(title, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
-        Text(message, color = TextSec, style = MaterialTheme.typography.bodyMedium)
+        Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

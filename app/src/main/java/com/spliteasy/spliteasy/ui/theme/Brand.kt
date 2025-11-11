@@ -3,8 +3,6 @@ package com.spliteasy.spliteasy.ui.theme
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-val BrandPrimary    = Color(0xFF202020)
-val BrandSecondary  = Color(0xFFFF6F00)
 val BackgroundLight = Color(0xFFF0F0F0)
 val TextDark        = Color(0xFF212529)
 val TextMuted       = Color(0xFF6C757D)

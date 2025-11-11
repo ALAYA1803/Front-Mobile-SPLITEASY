@@ -8,31 +8,36 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val SplitEasyLightColors = lightColorScheme(
     primary = BrandPrimary,
-    onPrimary = Color.White,
+    onPrimary = AlwaysWhite,
     secondary = BrandSecondary,
-    onSecondary = Color.White,
-    background = BackgroundLight,
-    onBackground = TextDark,
-    surface = Color.White,
-    onSurface = TextDark,
-    outline = BorderColor
+    onSecondary = AlwaysWhite,
+    background = LightBgMain,
+    onBackground = LightTextPrimary,
+    surface = LightCardBg,
+    onSurface = LightTextPrimary,
+    onSurfaceVariant = LightTextSecondary,
+    outline = LightBorder,
+    error = DangerColor,
+    onError = AlwaysWhite
 )
 
 private val SplitEasyDarkColors = darkColorScheme(
     primary = BrandPrimary,
-    onPrimary = Color.White,
+    onPrimary = AlwaysWhite,
     secondary = BrandSecondary,
-    onSecondary = Color.White,
-    background = FormColumnBg,
-    onBackground = Color.White,
-    surface = FormColumnBg,
-    onSurface = Color.White,
-    outline = BorderColor.copy(alpha = 0.6f)
+    onSecondary = AlwaysWhite,
+    background = DarkBgMain,
+    onBackground = DarkTextPrimary,
+    surface = DarkCardBg,
+    onSurface = DarkTextPrimary,
+    onSurfaceVariant = DarkTextSecondary,
+    outline = DarkBorder,
+    error = DangerColor,
+    onError = AlwaysWhite
 )
 
 @Composable

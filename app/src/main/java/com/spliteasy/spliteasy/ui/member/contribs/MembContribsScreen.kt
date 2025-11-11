@@ -23,7 +23,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,17 +35,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-
-private val BrandPrimary = Color(0xFF1565C0)
-private val InfoColor    = Color(0xFF1A73E8)
-private val SuccessColor = Color(0xFF2E7D32)
-private val WarningColor = Color(0xFFFF8F00)
-private val DangerColor  = Color(0xFFD32F2F)
-private val BgMain       = Color(0xFF1A1A1A)
-private val BgCard       = Color(0xFF2D2D2D)
-private val Border       = Color(0xFF404040)
-private val TextPri      = Color(0xFFF8F9FA)
-private val TextSec      = Color(0xFFADB5BD)
+import com.spliteasy.spliteasy.ui.theme.DangerColor
+import com.spliteasy.spliteasy.ui.theme.InfoColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
+import com.spliteasy.spliteasy.ui.theme.WarningColor
 
 @Composable
 fun MembContribsScreen(
@@ -82,7 +74,7 @@ fun MembContribsScreen(
     }
 
     Scaffold(
-        containerColor = BgMain,
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
         when (val s = ui) {
@@ -91,20 +83,20 @@ fun MembContribsScreen(
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
-            ) { CircularProgressIndicator(color = BrandPrimary) }
+            ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
 
             is ContribsUiState.Error -> Box(
                 Modifier
                     .fillMaxSize()
                     .padding(padding),
                 contentAlignment = Alignment.Center
-            ) { Text(s.message, color = TextSec) }
+            ) { Text(s.message, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 
             is ContribsUiState.Ready -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(BgMain)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(padding),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -112,13 +104,13 @@ fun MembContribsScreen(
                     item {
                         Text(
                             stringResource(R.string.memb_contribs_title),
-                            color = TextPri,
+                            color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             stringResource(R.string.memb_contribs_subtitle),
-                            color = TextSec,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -141,7 +133,7 @@ fun MembContribsScreen(
                                     .padding(top = 48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(stringResource(R.string.memb_contribs_empty_list), color = TextSec)
+                                Text(stringResource(R.string.memb_contribs_empty_list), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -162,7 +154,7 @@ private fun ContribCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BgCard,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp),
         tonalElevation = 0.dp,
         shadowElevation = 2.dp
@@ -172,7 +164,7 @@ private fun ContribCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = row.billDescription ?: stringResource(R.string.memb_contribs_fallback_bill),
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -211,7 +203,7 @@ private fun ContribCard(
                 onClick = onUpload,
                 enabled = canUpload,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (row.statusUi == "EN_REVISION") InfoColor else BrandPrimary
+                    containerColor = if (row.statusUi == "EN_REVISION") InfoColor else MaterialTheme.colorScheme.primary
                 )
             ) {
                 Text(buttonText)
@@ -222,8 +214,8 @@ private fun ContribCard(
 
 @Composable private fun Labeled(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = TextSec, modifier = Modifier.width(120.dp), style = MaterialTheme.typography.bodySmall)
-        Text(value, color = TextPri, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(120.dp), style = MaterialTheme.typography.bodySmall)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold))
     }
 }
 
@@ -253,7 +245,7 @@ private fun ContribCard(
         Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(Border)
+            .background(MaterialTheme.colorScheme.outline)
     )
 }
 

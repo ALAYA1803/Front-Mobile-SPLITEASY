@@ -24,8 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,7 +49,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.spliteasy.spliteasy.ui.representative.home.RepCreateHouseholdScreen
-import com.spliteasy.spliteasy.ui.representative.home.create.RepCreateHouseholdViewModel
 import com.spliteasy.spliteasy.ui.representative.members.RepMembersScreen
 import com.spliteasy.spliteasy.ui.representative.bills.RepBillsScreen
 import com.spliteasy.spliteasy.ui.representative.contributions.RepContributionsScreen
@@ -59,13 +56,6 @@ import com.spliteasy.spliteasy.ui.member.settings.MembSettingsScreen
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-
-private val BrandPrimary   = Color(0xFF1565C0)
-private val BgMain         = Color(0xFF1A1A1A)
-private val BgCard         = Color(0xFF2D2D2D)
-private val Border         = Color(0xFF404040)
-private val TextPri        = Color(0xFFF8F9FA)
-private val TextSec        = Color(0xFFADB5BD)
 
 sealed class RepDest(
     val route: String,
@@ -149,7 +139,7 @@ fun RepresentativeNavRoot(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = BgMain,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             RepTopBar(
@@ -166,7 +156,7 @@ fun RepresentativeNavRoot(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(BgMain)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             NavHost(
                 navController = nav,
@@ -208,7 +198,7 @@ private fun RepTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
@@ -218,7 +208,7 @@ private fun RepTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                color = BrandPrimary.copy(alpha = .2f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = .2f),
                 shape = CircleShape
             ) {
                 Box(
@@ -227,7 +217,7 @@ private fun RepTopBar(
                 ) {
                     Text(
                         initial,
-                        color = BrandPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -236,18 +226,22 @@ private fun RepTopBar(
             Column(Modifier.weight(1f)) {
                 Text(
                     "$title — $username",
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                 )
-                Text(subtitle, color = TextSec, style = MaterialTheme.typography.bodySmall)
+                Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onLogout) {
-                Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = stringResource(R.string.rep_nav_cd_logout), tint = TextPri)
+                Icon(
+                    Icons.AutoMirrored.Rounded.Logout,
+                    contentDescription = stringResource(R.string.rep_nav_cd_logout),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
             }
         }
-        Divider(color = Border, thickness = 1.dp)
+        Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
     }
 }
 
@@ -256,7 +250,7 @@ private fun RepBottomBar(tabs: List<RepDest>, nav: NavHostController) {
     val backStackEntry by nav.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    NavigationBar(containerColor = BgCard, tonalElevation = 0.dp) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
         tabs.forEach { dest ->
             val selected = currentRoute == dest.route
             val labelText = dest.label()
@@ -276,18 +270,17 @@ private fun RepBottomBar(tabs: List<RepDest>, nav: NavHostController) {
                     Icon(
                         dest.icon,
                         contentDescription = labelText,
-                        tint = if (selected) BrandPrimary else TextSec
                     )
                 },
                 label = {
-                    Text(labelText, color = if (selected) TextPri else TextSec, maxLines = 1)
+                    Text(labelText, maxLines = 1)
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = BrandPrimary,
-                    selectedTextColor = TextPri,
-                    indicatorColor = BrandPrimary.copy(alpha = 0.12f),
-                    unselectedIconColor = TextSec,
-                    unselectedTextColor = TextSec
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
@@ -296,7 +289,12 @@ private fun RepBottomBar(tabs: List<RepDest>, nav: NavHostController) {
 
 @Composable
 private fun StubCenter(text: String) {
-    Box(Modifier.fillMaxSize().background(BgMain), contentAlignment = Alignment.Center) {
-        Text(text, color = TextPri)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = MaterialTheme.colorScheme.onBackground)
     }
 }

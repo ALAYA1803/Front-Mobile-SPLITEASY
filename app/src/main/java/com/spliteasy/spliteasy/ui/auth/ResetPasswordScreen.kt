@@ -6,30 +6,29 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
-
-private val BgMain      = Color(0xFF2D2D2D)
-private val CardBg      = Color(0xFF1B1E24)
-private val CardBgElev  = Color(0xFF222632)
-private val Border      = Color(0xFF2B2F3A)
-private val TextPri     = Color(0xFFF3F4F6)
-private val TextSec     = Color(0xFF9AA0A6)
-private val BrandPrimary= Color(0xFF1565C0)
-private val Danger      = Color(0xFFE53935)
-private val Success     = Color(0xFF43A047)
+import com.spliteasy.spliteasy.ui.member.settings.LanguageSwitchComponent
+import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
+import com.spliteasy.spliteasy.ui.theme.DangerColor
+import com.spliteasy.spliteasy.ui.theme.SuccessColor
 
 @Composable
 fun ResetPasswordScreen(
@@ -45,11 +44,22 @@ fun ResetPasswordScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgMain)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp, end = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ThemeSwitchComponent()
+            LanguageSwitchComponent()
+        }
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,7 +68,7 @@ fun ResetPasswordScreen(
             Text(
                 text = stringResource(R.string.reset_pass_title),
                 style = MaterialTheme.typography.titleLarge.copy(
-                    color = TextPri,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.SemiBold
                 )
             )
@@ -66,7 +76,7 @@ fun ResetPasswordScreen(
             Text(
                 text = stringResource(R.string.reset_pass_subtitle),
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = TextSec
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
 
@@ -78,9 +88,9 @@ fun ResetPasswordScreen(
                     .padding(horizontal = 6.dp)
                     .widthIn(max = 420.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardBg),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                border = BorderStroke(1.dp, Border)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(
                     modifier = Modifier
@@ -90,7 +100,7 @@ fun ResetPasswordScreen(
                     Text(
                         stringResource(R.string.reset_pass_card_title),
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            color = TextPri,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -99,7 +109,7 @@ fun ResetPasswordScreen(
 
                     Text(
                         stringResource(R.string.reset_pass_label_new),
-                        color = TextPri,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                     )
                     Spacer(Modifier.height(6.dp))
@@ -128,35 +138,20 @@ fun ResetPasswordScreen(
                         isError = (error != null && success == null),
                         supportingText = {
                             if (error != null && success == null) {
-                                Text(error ?: "", color = Danger)
+                                Text(error ?: "", color = DangerColor)
                             } else {
-                                Text(stringResource(R.string.reset_pass_support_hint), color = TextSec)
+                                Text(stringResource(R.string.reset_pass_support_hint), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextPri,
-                            unfocusedTextColor = TextPri,
-                            cursorColor = BrandPrimary,
-                            focusedBorderColor = Border,
-                            unfocusedBorderColor = Border.copy(alpha = 0.6f),
-                            errorBorderColor = Danger,
-                            focusedContainerColor = CardBgElev,
-                            unfocusedContainerColor = CardBgElev,
-                            errorContainerColor = CardBgElev,
-                            focusedLabelColor = TextSec,
-                            unfocusedLabelColor = TextSec,
-                            focusedTrailingIconColor = TextSec,
-                            unfocusedTrailingIconColor = TextSec,
-                            errorTrailingIconColor = Danger
-                        )
+                        colors = fieldColors()
                     )
 
                     Spacer(Modifier.height(12.dp))
 
                     Text(
                         stringResource(R.string.reset_pass_label_confirm),
-                        color = TextPri,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                     )
                     Spacer(Modifier.height(6.dp))
@@ -184,22 +179,7 @@ fun ResetPasswordScreen(
                         textStyle = MaterialTheme.typography.bodyLarge,
                         isError = (error != null && success == null),
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextPri,
-                            unfocusedTextColor = TextPri,
-                            cursorColor = BrandPrimary,
-                            focusedBorderColor = Border,
-                            unfocusedBorderColor = Border.copy(alpha = 0.6f),
-                            errorBorderColor = Danger,
-                            focusedContainerColor = CardBgElev,
-                            unfocusedContainerColor = CardBgElev,
-                            errorContainerColor = CardBgElev,
-                            focusedLabelColor = TextSec,
-                            unfocusedLabelColor = TextSec,
-                            focusedTrailingIconColor = TextSec,
-                            unfocusedTrailingIconColor = TextSec,
-                            errorTrailingIconColor = Danger
-                        )
+                        colors = fieldColors()
                     )
 
                     Spacer(Modifier.height(16.dp))
@@ -209,10 +189,10 @@ fun ResetPasswordScreen(
                         enabled = !loading && vm.pass1.isNotBlank() && vm.pass2.isNotBlank(),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BrandPrimary,
-                            contentColor = Color.White,
-                            disabledContainerColor = CardBgElev,
-                            disabledContentColor = TextSec
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -231,10 +211,71 @@ fun ResetPasswordScreen(
 
                     if (success != null) {
                         Spacer(Modifier.height(10.dp))
-                        Text(success, color = Success)
+                        Text(success, color = SuccessColor)
                     }
                 }
             }
         }
+    }
+}
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    errorBorderColor = MaterialTheme.colorScheme.error,
+    errorLeadingIconColor = MaterialTheme.colorScheme.error,
+    errorTrailingIconColor = MaterialTheme.colorScheme.error
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeSwitchComponent(
+    modifier: Modifier = Modifier,
+    vm: ThemeViewModel = hiltViewModel()
+) {
+    val currentTheme by vm.theme.collectAsState()
+
+    val (icon, contentDescRes, onClickAction) = when (currentTheme) {
+        "LIGHT" -> Triple(
+            Icons.Rounded.LightMode,
+            R.string.theme_switch_to_dark,
+            { vm.setTheme("DARK") }
+        )
+        "DARK" -> Triple(
+            Icons.Rounded.DarkMode,
+            R.string.theme_switch_to_system,
+            { vm.setTheme("SYSTEM") }
+        )
+        else -> Triple(
+            Icons.Rounded.SettingsBrightness,
+            R.string.theme_switch_to_light,
+            { vm.setTheme("LIGHT") }
+        )
+    }
+
+    OutlinedIconButton(
+        onClick = onClickAction,
+        modifier = modifier.size(40.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(contentDescRes),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

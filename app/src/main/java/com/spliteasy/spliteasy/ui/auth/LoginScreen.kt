@@ -21,7 +21,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,9 +32,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.member.settings.LanguageSwitchComponent
-import com.spliteasy.spliteasy.ui.theme.*
+import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
 import kotlinx.coroutines.launch
-
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material.icons.rounded.SettingsBrightness
+import androidx.compose.material3.OutlinedIconButton
 @Composable
 fun LoginScreen(
     onSuccess: (Boolean) -> Unit,
@@ -61,13 +64,14 @@ fun LoginScreen(
     val passwordEmptyError = triedSubmit && password.isBlank()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
     ) { inner ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(inner)
-                .background(FormColumnBg)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Box(
                 modifier = Modifier
@@ -75,9 +79,14 @@ fun LoginScreen(
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                LanguageSwitchComponent(
-                    modifier = Modifier.align(Alignment.TopEnd)
-                )
+                Row(
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ThemeSwitchComponent()
+                    LanguageSwitchComponent()
+                }
             }
 
             Column(
@@ -96,7 +105,7 @@ fun LoginScreen(
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleLarge.copy(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold
                     )
                 )
@@ -104,7 +113,7 @@ fun LoginScreen(
                 Text(
                     text = stringResource(R.string.login_subtitle),
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color.White.copy(alpha = 0.9f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
 
@@ -116,7 +125,7 @@ fun LoginScreen(
                         .padding(horizontal = 6.dp)
                         .widthIn(max = 420.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1F1F1F)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
                     Column(
@@ -127,7 +136,7 @@ fun LoginScreen(
                         Text(
                             stringResource(R.string.login_card_title),
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold
                             )
                         )
@@ -138,7 +147,7 @@ fun LoginScreen(
                         ) {
                             vm.error?.let { mappedError ->
                                 Surface(
-                                    color = Color(0x26E53935),
+                                    color = MaterialTheme.colorScheme.errorContainer,
                                     shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -156,7 +165,7 @@ fun LoginScreen(
                                         Spacer(Modifier.width(8.dp))
                                         Text(
                                             mappedError,
-                                            color = Color.White
+                                            color = MaterialTheme.colorScheme.onErrorContainer
                                         )
                                     }
                                 }
@@ -167,13 +176,13 @@ fun LoginScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 stringResource(R.string.login_card_no_account),
-                                style = MaterialTheme.typography.bodySmall.copy(color = Color.White)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface)
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
                                 stringResource(R.string.login_card_create_account),
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    color = BrandSecondary,
+                                    color = MaterialTheme.colorScheme.secondary,
                                     fontWeight = FontWeight.Medium
                                 ),
                                 modifier = Modifier.clickable { onNavigateToRegister() }
@@ -184,7 +193,7 @@ fun LoginScreen(
 
                         Text(
                             stringResource(R.string.login_label_username),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                         )
                         Spacer(Modifier.height(6.dp))
@@ -195,7 +204,7 @@ fun LoginScreen(
                                 if (triedSubmit) vm.clearError()
                             },
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = TextMuted) },
+                            leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodyLarge,
                             isError = usernameEmptyError || invalidCreds,
@@ -211,17 +220,7 @@ fun LoginScreen(
                                     )
                                 }
                             },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = Color.White,
-                                focusedBorderColor = BorderColor,
-                                unfocusedBorderColor = BorderColor.copy(alpha = 0.6f),
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedLeadingIconColor = TextMuted,
-                                unfocusedLeadingIconColor = TextMuted
-                            ),
+                            colors = fieldColors(),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
                                 imeAction = ImeAction.Next
@@ -232,7 +231,7 @@ fun LoginScreen(
 
                         Text(
                             stringResource(R.string.login_label_password),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
                         )
                         Spacer(Modifier.height(6.dp))
@@ -243,7 +242,7 @@ fun LoginScreen(
                                 if (triedSubmit) vm.clearError()
                             },
                             singleLine = true,
-                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = TextMuted) },
+                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                             trailingIcon = {
                                 IconButton(onClick = { showPassword = !showPassword }) {
                                     val icon = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility
@@ -252,7 +251,11 @@ fun LoginScreen(
                                     } else {
                                         stringResource(R.string.login_pass_show)
                                     }
-                                    Icon(icon, contentDescription = label, tint = TextMuted)
+                                    Icon(
+                                        icon,
+                                        contentDescription = label,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             },
                             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -271,17 +274,7 @@ fun LoginScreen(
                                     )
                                 }
                             },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = Color.White,
-                                focusedBorderColor = BorderColor,
-                                unfocusedBorderColor = BorderColor.copy(alpha = 0.6f),
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedLeadingIconColor = TextMuted,
-                                unfocusedLeadingIconColor = TextMuted
-                            ),
+                            colors = fieldColors(),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = if (showPassword) KeyboardType.Text else KeyboardType.Password,
                                 imeAction = ImeAction.Done
@@ -302,7 +295,7 @@ fun LoginScreen(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                             Text(
                                 text = stringResource(R.string.login_forgot_password),
-                                color = BrandSecondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier
                                     .padding(top = 8.dp)
                                     .clickable { onForgotPassword() }
@@ -315,7 +308,7 @@ fun LoginScreen(
                             exit = fadeOut()
                         ) {
                             Surface(
-                                color = Color(0xFF2C2C2C),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -328,12 +321,12 @@ fun LoginScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(18.dp),
                                         strokeWidth = 2.dp,
-                                        color = BrandSecondary
+                                        color = MaterialTheme.colorScheme.secondary
                                     )
                                     Spacer(Modifier.width(10.dp))
                                     Text(
                                         stringResource(R.string.login_recaptcha_verifying),
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
@@ -353,8 +346,8 @@ fun LoginScreen(
                             enabled = !vm.loading && username.isNotBlank() && password.isNotBlank(),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = BrandPrimary,
-                                contentColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -365,7 +358,7 @@ fun LoginScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(18.dp),
                                         strokeWidth = 2.dp,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onPrimary
                                     )
                                     Spacer(Modifier.width(10.dp))
                                     val label = when (vm.phase) {
@@ -391,3 +384,57 @@ fun LoginScreen(
         }
     }
 }
+@Composable private fun fieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+    disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeSwitchComponent(
+    modifier: Modifier = Modifier,
+    vm: ThemeViewModel = hiltViewModel()
+) {
+    val currentTheme by vm.theme.collectAsState()
+    val (icon, contentDescRes, onClickAction) = when (currentTheme) {
+        "LIGHT" -> Triple(
+            Icons.Rounded.LightMode,
+            R.string.theme_switch_to_dark,
+            { vm.setTheme("DARK") }
+        )
+        "DARK" -> Triple(
+            Icons.Rounded.DarkMode,
+            R.string.theme_switch_to_system,
+            { vm.setTheme("SYSTEM") }
+        )
+        else -> Triple(
+            Icons.Rounded.SettingsBrightness,
+            R.string.theme_switch_to_light,
+            { vm.setTheme("LIGHT") }
+        )
+    }
+    OutlinedIconButton(
+        onClick = onClickAction,
+        modifier = modifier.size(40.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = stringResource(contentDescRes),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+

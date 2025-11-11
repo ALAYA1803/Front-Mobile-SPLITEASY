@@ -17,10 +17,14 @@ class TokenDataStore(private val context: Context) {
 
     private val KEY_LANGUAGE = stringPreferencesKey("app_language")
 
+    private val KEY_THEME = stringPreferencesKey("app_theme")
+
     val tokenFlow = context.dataStore.data.map { it[KEY_TOKEN] }
     val roleFlow  = context.dataStore.data.map { it[KEY_ROLE]  }
 
     val languageFlow = context.dataStore.data.map { it[KEY_LANGUAGE] ?: "es" }
+
+    val themeFlow = context.dataStore.data.map { it[KEY_THEME] ?: "SYSTEM" }
     suspend fun saveToken(token: String) {
         context.dataStore.edit { prefs -> prefs[KEY_TOKEN] = token }
     }
@@ -55,4 +59,8 @@ class TokenDataStore(private val context: Context) {
     suspend fun readRole(): String?  = roleFlow.first()
     suspend fun readUserId(): Long?  =
         context.dataStore.data.first()[KEY_USER_ID]?.toLongOrNull()
+
+    suspend fun saveTheme(theme: String) {
+        context.dataStore.edit { prefs -> prefs[KEY_THEME] = theme }
+    }
 }
