@@ -373,4 +373,13 @@
     <string name="memb_contribs_dialog_copy_cd">Copiar número</string>
     <string name="memb_contribs_dialog_upload_button">Ya pagué, subir comprobante</string>
     <string name="memb_contribs_toast_copied">¡Número copiado!</string>
+
+    <string name="member_home_alerts_title">Alertas de Vencimiento</string>
+    <string name="member_home_alerts_today">Vencen Hoy</string>
+    <string name="member_home_alerts_tomorrow">Vencen Mañana</string>
+
+    <plurals name="rep_home_urgent_toast">
+        <item quantity="one">Tienes 1 contribución urgente por vencer.</item>
+        <item quantity="other">Tienes %d contribuciones urgentes por vencer.</item>
+    </plurals>
 </resources>

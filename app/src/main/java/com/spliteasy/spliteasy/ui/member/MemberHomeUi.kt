@@ -1,5 +1,11 @@
 package com.spliteasy.spliteasy.ui.member
 
+
+data class AlertContribUi(
+    val id: Long,
+    val description: String
+)
+
 data class MemberItemUi(
     val id: Long,
     val username: String,
@@ -19,7 +25,10 @@ sealed interface MemberHomeUiState {
         val totalPaid: Double,
         val activeContribsCount: Int,
         val currentUserId: Long? = null,
-        val currentUserName: String? = null
+        val currentUserName: String? = null,
+        val alertsToday: List<AlertContribUi> = emptyList(),
+        val alertsTomorrow: List<AlertContribUi> = emptyList()
+
     ) : MemberHomeUiState
 
     data class Empty(val reason: String) : MemberHomeUiState

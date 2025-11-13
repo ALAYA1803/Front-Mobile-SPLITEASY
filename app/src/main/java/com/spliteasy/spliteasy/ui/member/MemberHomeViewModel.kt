@@ -12,10 +12,15 @@ import com.spliteasy.spliteasy.util.JwtUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import kotlin.math.round
+
 
 @HiltViewModel
 class MemberHomeViewModel @Inject constructor(
@@ -69,8 +74,36 @@ class MemberHomeViewModel @Inject constructor(
                 householdId = hh.id
             ).getOrElse { emptyList() }
 
-            val normalized = myContribs.map { it.copy(status = normalizeStatus(it.status)) }
-            val (pendingList, paidList) = normalized.partition { it.status == "PENDING" }
+            val today = LocalDate.now().toString()
+            val tomorrow = LocalDate.now().plusDays(1).toString()
+            val alertsToday = mutableListOf<AlertContribUi>()
+            val alertsTomorrow = mutableListOf<AlertContribUi>()
+            val pendingList = mutableListOf<MemberContributionDto>()
+            val paidList = mutableListOf<MemberContributionDto>()
+            coroutineScope {
+                myContribs.map { mc ->
+                    async {
+                        val normalizedStatus = normalizeStatus(mc.status)
+                        val normalizedMc = mc.copy(status = normalizedStatus)
+                        if (normalizedStatus == "PENDING") {
+                            pendingList.add(normalizedMc)
+                            val contrib = repo.getContribution(mc.contributionId).getOrNull()
+                            if (contrib != null && contrib.dueDate != null) {
+                                val alertUi = AlertContribUi(
+                                    contrib.id,
+                                    contrib.description ?: (app.getString(R.string.memb_contribs_fallback_bill) + " #${contrib.id}")
+                                )
+                                when (contrib.dueDate) {
+                                    today -> alertsToday.add(alertUi)
+                                    tomorrow -> alertsTomorrow.add(alertUi)
+                                }
+                            }
+                        } else {
+                            paidList.add(normalizedMc)
+                        }
+                    }
+                }.awaitAll()
+            }
 
             val totalPending = pendingList.sumOf { getAmount(it) }
             val totalPaid    = paidList.sumOf { getAmount(it) }
@@ -85,7 +118,9 @@ class MemberHomeViewModel @Inject constructor(
                 totalPaid = round2(totalPaid),
                 activeContribsCount = activeCount,
                 currentUserId = currentUserId,
-                currentUserName = currentUserName
+                currentUserName = currentUserName,
+                alertsToday = alertsToday,
+                alertsTomorrow = alertsTomorrow
             )
         }
     }

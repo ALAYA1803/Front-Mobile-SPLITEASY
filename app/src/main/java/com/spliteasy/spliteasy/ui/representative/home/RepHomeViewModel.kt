@@ -17,6 +17,10 @@ import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.update
+import java.time.LocalDate
 import kotlinx.coroutines.launch
 
 data class RepHomeUi(
@@ -41,6 +45,8 @@ class RepHomeViewModel @Inject constructor(
 
     private val _ui = MutableStateFlow(RepHomeUi())
     val ui = _ui.asStateFlow()
+    private val _snackbarEvent = MutableSharedFlow<String>()
+    val snackbarEvent = _snackbarEvent.asSharedFlow()
 
     fun load() {
         viewModelScope.launch {
@@ -76,6 +82,8 @@ class RepHomeViewModel @Inject constructor(
                 val billsCount = allBills.count   { it.normalizedHouseholdId() == hhId }
                 val currency = mine.currency ?: "PEN"
 
+                checkForUrgentContributions(contributions)
+
                 _ui.value = RepHomeUi(
                     loading = false,
                     showOnboarding = false,
@@ -96,6 +104,30 @@ class RepHomeViewModel @Inject constructor(
             }
         }
     }
+
+    private suspend fun checkForUrgentContributions(contributions: List<ContributionDto>) {
+        try {
+            val app = getApplication<Application>()
+            val today = LocalDate.now().toString()
+            val tomorrow = LocalDate.now().plusDays(1).toString()
+            val urgentCount = contributions.count {
+                val dueDate = it.dueDate
+                dueDate == today || dueDate == tomorrow
+            }
+
+            if (urgentCount > 0) {
+                val message = app.resources.getQuantityString(
+                    R.plurals.rep_home_urgent_toast,
+                    urgentCount,
+                    urgentCount
+                )
+                _snackbarEvent.emit(message)
+            }
+        } catch (e: Exception) {
+            println("Error al calcular contribuciones urgentes: ${e.message}")
+        }
+    }
+
     private fun MemberDto.normalizedHouseholdId(): Long? {
         return this.householdId ?: this.household_id ?: this.household?.id
     }

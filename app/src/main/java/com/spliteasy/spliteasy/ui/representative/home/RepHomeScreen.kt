@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.theme.InfoColor
 import com.spliteasy.spliteasy.ui.theme.SuccessColor
-
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun RepHomeScreen(
@@ -40,23 +40,40 @@ fun RepHomeScreen(
     onCreateHousehold: () -> Unit = {}
 ) {
     val ui by vm.ui.collectAsState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        vm.snackbarEvent.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
     LaunchedEffect(Unit) { vm.load() }
 
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        when {
-            ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            when {
+                ui.loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+                ui.error != null -> ErrorBox(
+                    message = ui.error ?: stringResource(R.string.member_home_error_generic),
+                    onRetry = vm::load
+                )
+                ui.showOnboarding -> OnboardingCard(onCreate = onCreateHousehold)
+                else -> Dashboard(ui = ui)
             }
-            ui.error != null -> ErrorBox(
-                message = ui.error ?: stringResource(R.string.member_home_error_generic),
-                onRetry = vm::load
-            )
-            ui.showOnboarding -> OnboardingCard(onCreate = onCreateHousehold)
-            else -> Dashboard(ui = ui)
         }
     }
 }
-
 
 @Composable
 private fun OnboardingCard(onCreate: () -> Unit) {

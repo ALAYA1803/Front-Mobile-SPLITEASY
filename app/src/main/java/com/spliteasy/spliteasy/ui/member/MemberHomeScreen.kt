@@ -1,6 +1,8 @@
 package com.spliteasy.spliteasy.ui.member
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Wallet
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.theme.InfoColor
 import com.spliteasy.spliteasy.ui.theme.SuccessColor
+import com.spliteasy.spliteasy.ui.theme.WarningColor
 import java.text.NumberFormat
 import java.util.*
 
@@ -81,6 +85,17 @@ private fun MemberHomeContent(s: MemberHomeUiState.Ready) {
                 householdDescription = s.householdDescription
             )
         }
+
+        if (s.alertsToday.isNotEmpty() || s.alertsTomorrow.isNotEmpty()) {
+            item {
+                AlertsCard(
+                    alertsToday = s.alertsToday,
+                    alertsTomorrow = s.alertsTomorrow,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+        }
+
         item {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -217,6 +232,102 @@ private fun HeroHeader(
                             Text(
                                 householdDescription,
                                 style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertsCard(
+    alertsToday: List<AlertContribUi>,
+    alertsTomorrow: List<AlertContribUi>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, WarningColor.copy(alpha = 0.5f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Rounded.Warning,
+                    contentDescription = null,
+                    tint = WarningColor
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.member_home_alerts_title),
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.member_home_alerts_today),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    if (alertsToday.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.common_fallback_dash),
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    } else {
+                        alertsToday.forEach {
+                            Text(
+                                text = "• ${it.description}",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.member_home_alerts_tomorrow),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    if (alertsTomorrow.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.common_fallback_dash),
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    } else {
+                        alertsTomorrow.forEach {
+                            Text(
+                                text = "• ${it.description}",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }

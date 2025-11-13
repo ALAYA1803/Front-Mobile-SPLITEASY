@@ -380,4 +380,15 @@
     <string name="memb_contribs_dialog_copy_cd">Copy number</string>
     <string name="memb_contribs_dialog_upload_button">I already paid, upload receipt</string>
     <string name="memb_contribs_toast_copied">Number copied!</string>
+
+    <string name="member_home_alerts_title">Expiration Alerts</string>
+    <string name="member_home_alerts_today">Expires Today</string>
+    <string name="member_home_alerts_tomorrow">Expires Tomorrow</string>
+
+    <plurals name="rep_home_urgent_toast">
+
+        <item quantity="one">You have 1 urgent contribution due.</item>
+
+        <item quantity="other">You have %d urgent contributions due.</item>
+    </plurals>
 </resources>
