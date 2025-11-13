@@ -360,4 +360,17 @@
     <string name="theme_switch_to_dark">Cambiar a tema oscuro</string>
     <string name="theme_switch_to_system">Cambiar a tema del sistema</string>
     <string name="theme_switch_to_light">Cambiar a tema claro</string>
+
+    <string name="rep_contrib_form_label_number">Número (ej. Yape/Plin)</string>
+    <string name="rep_contrib_form_button_qr">Subir QR</string>
+    <string name="rep_contrib_form_qr_preview_cd">Vista previa del QR</string>
+    <string name="rep_contrib_vm_error_qr_read">Error al leer la imagen QR. Inténtalo de nuevo.</string>
+
+    <string name="memb_contribs_button_pay">Pagar y subir comprobante</string>
+
+    <string name="memb_contribs_dialog_title">Información de Pago</string>
+    <string name="memb_contribs_dialog_number_label">Número (Yape/Plin)</string>
+    <string name="memb_contribs_dialog_copy_cd">Copiar número</string>
+    <string name="memb_contribs_dialog_upload_button">Ya pagué, subir comprobante</string>
+    <string name="memb_contribs_toast_copied">¡Número copiado!</string>
 </resources>

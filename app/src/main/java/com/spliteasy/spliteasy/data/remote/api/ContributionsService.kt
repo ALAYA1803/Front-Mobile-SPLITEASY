@@ -26,7 +26,9 @@ data class CreateContributionRequest(
     val description: String,
     val strategy: String,
     val fechaLimite: String,
-    val memberIds: List<Long>
+    val memberIds: List<Long>,
+    val numero: String? = null,
+    val qr: String? = null
 )
 
 data class UpdateContributionRequest(

@@ -2,43 +2,59 @@ package com.spliteasy.spliteasy.ui.member.contribs
 
 import android.content.Context
 import android.database.Cursor
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.QrCode
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.res.stringResource
 import com.spliteasy.spliteasy.R
 import com.spliteasy.spliteasy.ui.theme.DangerColor
 import com.spliteasy.spliteasy.ui.theme.InfoColor
 import com.spliteasy.spliteasy.ui.theme.SuccessColor
 import com.spliteasy.spliteasy.ui.theme.WarningColor
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+
 
 @Composable
 fun MembContribsScreen(
@@ -50,9 +66,6 @@ fun MembContribsScreen(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     LaunchedEffect(currentUserId) { vm.load(currentUserId) }
-
-    var pendingUploadFor by remember { mutableStateOf<Long?>(null) }
-
     val snackSuccess = stringResource(R.string.memb_contribs_toast_upload_success)
     val snackFail = stringResource(R.string.memb_contribs_toast_upload_fail)
     val snackReadFail = stringResource(R.string.memb_contribs_toast_read_fail)
@@ -60,8 +73,10 @@ fun MembContribsScreen(
     val filePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        val mcId = pendingUploadFor
-        pendingUploadFor = null
+        val mcId = (ui as? ContribsUiState.Ready)?.dialogForContrib?.mc?.id
+
+        vm.closePaymentDialog()
+
         if (uri != null && mcId != null) {
             multipartFromUri(ctx, uri)?.let { part ->
                 vm.uploadReceipt(mcId, part) { ok ->
@@ -118,10 +133,7 @@ fun MembContribsScreen(
                     items(s.rows, key = { it.mc.id }) { row ->
                         ContribCard(
                             row = row,
-                            onUpload = {
-                                pendingUploadFor = row.mc.id
-                                filePicker.launch("*/*")
-                            }
+                            onPayClick = { vm.openPaymentDialog(row) }
                         )
                     }
 
@@ -140,6 +152,15 @@ fun MembContribsScreen(
 
                     item { Spacer(Modifier.height(80.dp)) }
                 }
+                if (s.dialogForContrib != null) {
+                    PaymentDialog(
+                        row = s.dialogForContrib,
+                        onDismiss = vm::closePaymentDialog,
+                        onUploadClick = {
+                            filePicker.launch("*/*")
+                        }
+                    )
+                }
             }
         }
     }
@@ -148,7 +169,7 @@ fun MembContribsScreen(
 @Composable
 private fun ContribCard(
     row: ContribRow,
-    onUpload: () -> Unit
+    onPayClick: () -> Unit
 ) {
     val fallbackDash = stringResource(R.string.common_fallback_dash)
 
@@ -191,26 +212,130 @@ private fun ContribCard(
 
             Spacer(Modifier.height(10.dp))
 
-            val canUpload = row.statusUi != "PAGADO"
-
-            val buttonText = if (row.statusUi == "EN_REVISION") {
-                stringResource(R.string.memb_contribs_button_replace)
-            } else {
-                stringResource(R.string.memb_contribs_button_upload)
+            val canPay = row.statusUi != "PAGADO"
+            val buttonText = when (row.statusUi) {
+                "EN_REVISION" -> stringResource(R.string.memb_contribs_button_replace)
+                "PENDIENTE", "RECHAZADO" -> stringResource(R.string.memb_contribs_button_pay)
+                else -> ""
             }
 
-            Button(
-                onClick = onUpload,
-                enabled = canUpload,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (row.statusUi == "EN_REVISION") InfoColor else MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text(buttonText)
+            if (canPay) {
+                Button(
+                    onClick = onPayClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (row.statusUi == "EN_REVISION") InfoColor else MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(buttonText)
+                }
             }
         }
     }
 }
+@Composable
+private fun PaymentDialog(
+    row: ContribRow,
+    onDismiss: () -> Unit,
+    onUploadClick: () -> Unit
+) {
+    val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+    val snackCopied = stringResource(R.string.memb_contribs_toast_copied)
+    val snackbar = remember { SnackbarHostState() }
+    val qrBitmap = remember(row.qr) {
+        try {
+            val bytes = Base64.decode(row.qr, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.memb_contribs_dialog_title)) },
+        text = {
+            Box {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (qrBitmap != null) {
+                        Image(
+                            bitmap = qrBitmap.asImageBitmap(),
+                            contentDescription = "Código QR",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White)
+                        )
+                    } else {
+                        Icon(
+                            Icons.Rounded.QrCode,
+                            contentDescription = "No hay QR",
+                            modifier = Modifier.size(60.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    if (!row.numero.isNullOrBlank()) {
+                        Text(
+                            text = stringResource(R.string.memb_contribs_dialog_number_label),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outline,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = row.numero,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = {
+                                clipboardManager.setText(AnnotatedString(row.numero))
+                                scope.launch { snackbar.showSnackbar(snackCopied) }
+                            }) {
+                                Icon(Icons.Rounded.ContentCopy, contentDescription = stringResource(R.string.memb_contribs_dialog_copy_cd))
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = onUploadClick,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.memb_contribs_dialog_upload_button))
+                    }
+                }
+                SnackbarHost(
+                    hostState = snackbar,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 16.dp)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_close))
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurface
+    )
+}
+
 
 @Composable private fun Labeled(label: String, value: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

@@ -1,6 +1,8 @@
 package com.spliteasy.spliteasy.ui.representative.contributions
 
 import android.app.Application
+import android.net.Uri
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spliteasy.spliteasy.R
@@ -16,8 +18,10 @@ import com.spliteasy.spliteasy.data.remote.dto.MemberContributionDto
 import com.spliteasy.spliteasy.data.remote.dto.PaymentReceiptDto
 import com.spliteasy.spliteasy.domain.repository.RepresentativeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
@@ -73,7 +77,10 @@ data class RepContribUi(
     val reviewVisible: Boolean = false,
     val reviewLoading: Boolean = false,
     val reviewForDetail: ContributionDetailUi? = null,
-    val reviewReceipts: List<PaymentReceiptDto> = emptyList()
+    val reviewReceipts: List<PaymentReceiptDto> = emptyList(),
+    val formNumero: String = "",
+    val formQrUri: Uri? = null,
+    val formQrBase64: String? = null
 )
 
 @HiltViewModel
@@ -92,16 +99,18 @@ class RepContributionsViewModel @Inject constructor(
     val ui = _ui.asStateFlow()
 
     fun load() = viewModelScope.launch {
-        _ui.value = _ui.value.copy(loading = true, error = null)
+        _ui.update { it.copy(loading = true, error = null) }
         try {
             val meId = repo.meId().getOrThrow()
             val households = repo.listAllHouseholds().getOrThrow()
             val myHouse = households.firstOrNull { it.representanteId == meId }
                 ?: run {
-                    _ui.value = _ui.value.copy(
-                        loading = false,
-                        error = app.getString(R.string.rep_contrib_vm_error_no_household)
-                    )
+                    _ui.update {
+                        it.copy(
+                            loading = false,
+                            error = app.getString(R.string.rep_contrib_vm_error_no_household)
+                        )
+                    }
                     return@launch
                 }
 
@@ -190,84 +199,135 @@ class RepContributionsViewModel @Inject constructor(
                 cu.copy(details = updatedDetails)
             }
 
-            _ui.value = _ui.value.copy(
-                loading = false,
-                householdId = hhId,
-                householdName = myHouse.name ?: app.getString(R.string.rep_contrib_vm_default_household),
-                currency = myHouse.currency ?: "PEN",
-                contributions = withCounts,
-                allBills = allBills.filter { it.normalizedHouseholdId() == hhId },
-                allMembers = membersLite
-            )
+            _ui.update {
+                it.copy(
+                    loading = false,
+                    householdId = hhId,
+                    householdName = myHouse.name ?: app.getString(R.string.rep_contrib_vm_default_household),
+                    currency = myHouse.currency ?: "PEN",
+                    contributions = withCounts,
+                    allBills = allBills.filter { bill -> bill.normalizedHouseholdId() == hhId },
+                    allMembers = membersLite
+                )
+            }
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(
-                loading = false,
-                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_load_fail)
-            )
+            _ui.update {
+                it.copy(
+                    loading = false,
+                    error = t.message ?: app.getString(R.string.rep_contrib_vm_error_load_fail)
+                )
+            }
         }
     }
 
     fun toggleExpanded(id: Long) {
-        _ui.value = _ui.value.copy(
-            contributions = _ui.value.contributions.map {
-                if (it.id == id) it.copy(expanded = !it.expanded) else it
-            }
-        )
+        _ui.update { uiState ->
+            uiState.copy(
+                contributions = uiState.contributions.map {
+                    if (it.id == id) it.copy(expanded = !it.expanded) else it
+                }
+            )
+        }
     }
 
     fun openForm() {
-        _ui.value = _ui.value.copy(
-            formVisible = true,
-            editingId = null,
-            formBillId = null,
-            formDescription = "",
-            formFechaLimite = today(),
-            formStrategy = "EQUAL",
-            formSelectedMembers = emptySet()
-        )
+        _ui.update {
+            it.copy(
+                formVisible = true,
+                editingId = null,
+                formBillId = null,
+                formDescription = "",
+                formFechaLimite = today(),
+                formStrategy = "EQUAL",
+                formSelectedMembers = emptySet(),
+                formNumero = "",
+                formQrUri = null,
+                formQrBase64 = null
+            )
+        }
     }
 
     fun closeForm() {
-        _ui.value = _ui.value.copy(
-            formVisible = false,
-            editingId = null
-        )
+        _ui.update {
+            it.copy(
+                formVisible = false,
+                editingId = null,
+                formNumero = "",
+                formQrUri = null,
+                formQrBase64 = null
+            )
+        }
     }
 
     fun onBill(v: Long?) {
-        _ui.value = _ui.value.copy(formBillId = v)
+        _ui.update { it.copy(formBillId = v) }
     }
 
     fun onDesc(v: String) {
-        _ui.value = _ui.value.copy(formDescription = v)
+        _ui.update { it.copy(formDescription = v) }
     }
 
     fun onDate(v: String) {
-        _ui.value = _ui.value.copy(formFechaLimite = v)
+        _ui.update { it.copy(formFechaLimite = v) }
     }
 
     fun onStrategy(v: String) {
-        _ui.value = _ui.value.copy(formStrategy = v)
+        _ui.update { it.copy(formStrategy = v) }
     }
 
     fun toggleMember(memberId: Long) {
-        val set = _ui.value.formSelectedMembers.toMutableSet()
-        if (!set.add(memberId)) set.remove(memberId)
-        _ui.value = _ui.value.copy(formSelectedMembers = set)
+        _ui.update { uiState ->
+            val set = uiState.formSelectedMembers.toMutableSet()
+            if (!set.add(memberId)) set.remove(memberId)
+            uiState.copy(formSelectedMembers = set)
+        }
+    }
+
+    fun onNumeroChange(numero: String) {
+        _ui.update { it.copy(formNumero = numero) }
+    }
+
+    fun onQrImageSelected(uri: Uri?) {
+        if (uri == null) {
+            _ui.update { it.copy(formQrUri = null, formQrBase64 = null) }
+            return
+        }
+        _ui.update { it.copy(formQrUri = uri) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val contentResolver = app.contentResolver
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    val bytes = inputStream.readBytes()
+                    val base64String = Base64.encodeToString(bytes, Base64.DEFAULT)
+                    _ui.update { it.copy(formQrBase64 = base64String) }
+                }
+            } catch (e: Exception) {
+                _ui.update {
+                    it.copy(
+                        formQrUri = null,
+                        formQrBase64 = null,
+                        error = app.getString(R.string.rep_contrib_vm_error_qr_read)
+                    )
+                }
+            }
+        }
     }
 
     fun submit() = viewModelScope.launch {
-        val hhId = _ui.value.householdId ?: return@launch
-        val bill = _ui.value.formBillId
-        val desc = _ui.value.formDescription.trim()
-        val date = _ui.value.formFechaLimite.trim()
-        val strategy = _ui.value.formStrategy
-        val members = _ui.value.formSelectedMembers.toList()
+        val uiState = _ui.value
+        val hhId = uiState.householdId ?: return@launch
+        val bill = uiState.formBillId
+        val desc = uiState.formDescription.trim()
+        val date = uiState.formFechaLimite.trim()
+        val strategy = uiState.formStrategy
+        val members = uiState.formSelectedMembers.toList()
+        val numero = uiState.formNumero.takeIf { it.isNotBlank() }
+        val qr = uiState.formQrBase64
 
         if (bill == null || desc.isBlank() || date.isBlank() || members.isEmpty()) {
-            _ui.value = _ui.value.copy(
-                error = app.getString(R.string.rep_contrib_vm_error_form_invalid)
-            )
+            _ui.update {
+                it.copy(error = app.getString(R.string.rep_contrib_vm_error_form_invalid))
+            }
             return@launch
         }
 
@@ -279,41 +339,44 @@ class RepContributionsViewModel @Inject constructor(
                     description = desc,
                     strategy = strategy,
                     fechaLimite = date,
-                    memberIds = members
+                    memberIds = members,
+                    numero = numero,
+                    qr = qr
                 )
             )
             closeForm()
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(
-                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_create_fail)
-            )
+            _ui.update {
+                it.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_create_fail))
+            }
         }
     }
 
     fun openReview(detail: ContributionDetailUi) {
-        _ui.value = _ui.value.copy(
-            reviewVisible = true,
-            reviewLoading = true,
-            reviewForDetail = detail,
-            reviewReceipts = emptyList()
-        )
+        _ui.update {
+            it.copy(
+                reviewVisible = true,
+                reviewLoading = true,
+                reviewForDetail = detail,
+                reviewReceipts = emptyList()
+            )
+        }
         viewModelScope.launch {
             val list = runCatching { receiptsApi.list(detail.id) }.getOrDefault(emptyList())
-            _ui.value = _ui.value.copy(
-                reviewLoading = false,
-                reviewReceipts = list
-            )
+            _ui.update { it.copy(reviewLoading = false, reviewReceipts = list) }
         }
     }
 
     fun closeReview() {
-        _ui.value = _ui.value.copy(
-            reviewVisible = false,
-            reviewLoading = false,
-            reviewForDetail = null,
-            reviewReceipts = emptyList()
-        )
+        _ui.update {
+            it.copy(
+                reviewVisible = false,
+                reviewLoading = false,
+                reviewForDetail = null,
+                reviewReceipts = emptyList()
+            )
+        }
     }
 
     fun approveReceiptAndRefresh(receiptId: Long) = viewModelScope.launch {
@@ -325,7 +388,7 @@ class RepContributionsViewModel @Inject constructor(
                     status = "PAGADO",
                     pendingReceiptsCount = (detail.pendingReceiptsCount - 1).coerceAtLeast(0)
                 )
-                _ui.value = cur.copy(reviewForDetail = updatedDetail)
+                _ui.update { it.copy(reviewForDetail = updatedDetail) }
             }
             detail?.let { openReview(it) }
             load()
@@ -340,7 +403,7 @@ class RepContributionsViewModel @Inject constructor(
                 val updatedDetail = detail.copy(
                     pendingReceiptsCount = (detail.pendingReceiptsCount - 1).coerceAtLeast(0)
                 )
-                _ui.value = cur.copy(reviewForDetail = updatedDetail)
+                _ui.update { it.copy(reviewForDetail = updatedDetail) }
             }
             detail?.let { openReview(it) }
             load()
@@ -352,9 +415,9 @@ class RepContributionsViewModel @Inject constructor(
             contribApi.delete(id)
             load()
         } catch (t: Throwable) {
-            _ui.value = _ui.value.copy(
-                error = t.message ?: app.getString(R.string.rep_contrib_vm_error_delete_fail)
-            )
+            _ui.update {
+                it.copy(error = t.message ?: app.getString(R.string.rep_contrib_vm_error_delete_fail))
+            }
         }
     }
 

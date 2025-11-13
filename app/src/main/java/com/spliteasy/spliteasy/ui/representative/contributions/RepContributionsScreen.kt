@@ -4,6 +4,14 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.KeyboardType
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,9 +56,14 @@ fun RepContributionsScreen(
     val ui by vm.ui.collectAsState()
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
-
     val formSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val reviewSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            vm.onQrImageSelected(uri)
+        }
+    )
 
     LaunchedEffect(Unit) { vm.load() }
 
@@ -151,7 +164,9 @@ fun RepContributionsScreen(
                 },
                 onSave = {
                     vm.submit()
-                }
+                },
+                onNumeroChange = vm::onNumeroChange,
+                onQrButtonClick = { imagePickerLauncher.launch("image/*") }
             )
         }
     }
@@ -356,7 +371,9 @@ private fun CreateContributionSheet(
     onStrategy: (String) -> Unit,
     onToggleMember: (Long) -> Unit,
     onCancel: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onNumeroChange: (String) -> Unit,
+    onQrButtonClick: () -> Unit
 ) {
     var billsOpen by remember { mutableStateOf(false) }
     var datePickerOpen by remember { mutableStateOf(false) }
@@ -491,6 +508,54 @@ private fun CreateContributionSheet(
                 modifier = Modifier.fillMaxWidth(),
                 colors = fieldColors()
             )
+
+            OutlinedTextField(
+                value = ui.formNumero,
+                onValueChange = onNumeroChange,
+                label = { Text(stringResource(R.string.rep_contrib_form_label_number)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = fieldColors(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+            )
+
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onQrButtonClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Rounded.QrCode, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.rep_contrib_form_button_qr))
+                }
+
+                if (ui.formQrUri != null) {
+                    Box(
+                        Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline,
+                                RoundedCornerShape(8.dp)
+                            )
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = ui.formQrUri),
+                            contentDescription = stringResource(R.string.rep_contrib_form_qr_preview_cd),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically

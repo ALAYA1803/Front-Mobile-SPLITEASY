@@ -18,7 +18,10 @@ data class ContributionDto(
     val description: String? = null,
     val strategy: String? = null,
     @Json(name = "fechaLimite")
-    val dueDate: String? = null
+    val dueDate: String? = null,
+    val numero: String? = null,
+    val qr: String? = null
+
 )
 
 data class BillDto(

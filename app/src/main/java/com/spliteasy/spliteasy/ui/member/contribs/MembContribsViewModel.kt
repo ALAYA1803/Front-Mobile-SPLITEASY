@@ -13,6 +13,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import javax.inject.Inject
@@ -26,12 +27,17 @@ data class ContribRow(
     val billDate: String?,
     val billAmount: Double?,
     val receipts: List<PaymentReceiptDto>,
-    val statusUi: String
+    val statusUi: String,
+    val qr: String?,
+    val numero: String?
 )
 
 sealed interface ContribsUiState {
     data object Loading : ContribsUiState
-    data class Ready(val rows: List<ContribRow>) : ContribsUiState
+    data class Ready(
+        val rows: List<ContribRow>,
+        val dialogForContrib: ContribRow? = null
+    ) : ContribsUiState
     data class Error(val message: String) : ContribsUiState
 }
 
@@ -84,7 +90,9 @@ class MembContribsViewModel @Inject constructor(
                             billDate = bill?.date,
                             billAmount = bill?.amount,
                             receipts = receipts,
-                            statusUi = statusUi
+                            statusUi = statusUi,
+                            qr = contrib?.qr,
+                            numero = contrib?.numero
                         )
                     }
                 }.awaitAll()
@@ -97,6 +105,24 @@ class MembContribsViewModel @Inject constructor(
         viewModelScope.launch {
             val res = repo.uploadReceipt(memberContributionId, filePart)
             onDone(res.isSuccess)
+        }
+    }
+    fun openPaymentDialog(row: ContribRow) {
+        _ui.update {
+            if (it is ContribsUiState.Ready) {
+                it.copy(dialogForContrib = row)
+            } else {
+                it
+            }
+        }
+    }
+    fun closePaymentDialog() {
+        _ui.update {
+            if (it is ContribsUiState.Ready) {
+                it.copy(dialogForContrib = null)
+            } else {
+                it
+            }
         }
     }
 }
