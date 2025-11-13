@@ -39,6 +39,9 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.SettingsBrightness
 import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.foundation.layout.padding
+import com.spliteasy.spliteasy.ui.chat.FloatingChatWidget
+
 @Composable
 fun LoginScreen(
     onSuccess: (Boolean) -> Unit,
@@ -381,6 +384,11 @@ fun LoginScreen(
                     }
                 }
             }
+            FloatingChatWidget(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 16.dp)
+            )
         }
     }
 }
@@ -437,4 +445,3 @@ private fun ThemeSwitchComponent(
         )
     }
 }
-

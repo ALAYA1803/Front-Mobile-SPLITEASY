@@ -18,6 +18,7 @@ import com.spliteasy.spliteasy.ui.auth.ResetPasswordScreen
 import com.spliteasy.spliteasy.ui.member.MemberNavRoot
 import com.spliteasy.spliteasy.ui.representative.RepresentativeNavRoot
 import kotlinx.coroutines.launch
+import com.spliteasy.spliteasy.ui.chat.ChatScreen
 
 @Composable
 fun AppNav(startDestination: String = Routes.LOGIN) {

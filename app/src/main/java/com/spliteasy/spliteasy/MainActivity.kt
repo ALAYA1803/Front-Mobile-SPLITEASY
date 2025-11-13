@@ -6,8 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.spliteasy.spliteasy.core.Routes
 import com.spliteasy.spliteasy.ui.navigation.AppNav
@@ -18,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import com.spliteasy.spliteasy.ui.settings.ThemeViewModel
 import kotlinx.coroutines.runBlocking
 import java.util.Locale
+import com.spliteasy.spliteasy.ui.chat.FloatingChatWidget
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
